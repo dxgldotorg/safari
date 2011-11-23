@@ -1,0 +1,83 @@
+/*
+	ratingframe.css
+	Copyright © 2010-2011  WOT Services Oy <info@mywot.com>
+
+	This file is part of WOT.
+
+	WOT is free software: you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	WOT is distributed in the hope that it will be useful, but WITHOUT
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+	License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with WOT. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+body {
+	overflow: hidden;
+	padding: 10px;
+}
+#wot-reputation-bg {
+	background-color: #555;
+	border-radius: 5px 5px;
+	display: block;
+	padding: 7px;
+	height: 28px;
+	width: 28px;
+}
+#wot-reputation {
+	background: url("../skin/fusion/28_28/default.png") top left no-repeat;
+	cursor: pointer;
+	display: block;
+	height: 28px;
+	width: 28px;
+}
+#wot-reputation[reputation="r0"] {
+	background: url("../skin/fusion/28_28/r0.png") top left no-repeat;
+}
+#wot-reputation[reputation="r1"] {
+	background: url("../skin/fusion/28_28/r1.png") top left no-repeat;
+}
+#wot-reputation[reputation="r2"] {
+	background: url("../skin/fusion/28_28/r2.png") top left no-repeat;
+}
+#wot-reputation[reputation="r3"] {
+	background: url("../skin/fusion/28_28/r3.png") top left no-repeat;
+}
+#wot-reputation[reputation="r4"] {
+	background: url("../skin/fusion/28_28/r4.png") top left no-repeat;
+}
+#wot-reputation[reputation="r5"] {
+	background: url("../skin/fusion/28_28/r5.png") top left no-repeat;
+}
+#wot-reputation[reputation="rx"] {
+	background: url("../skin/fusion/28_28/rx.png") top left no-repeat;
+}
+#wot-reputation.accessible {
+	background: url("../skin/fusion/accessible/28_28/default.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r0"] {
+	background: url("../skin/fusion/accessible/28_28/r0.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r1"] {
+	background: url("../skin/fusion/accessible/28_28/r1.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r2"] {
+	background: url("../skin/fusion/accessible/28_28/r2.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r3"] {
+	background: url("../skin/fusion/accessible/28_28/r3.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r4"] {
+	background: url("../skin/fusion/accessible/28_28/r4.png") top left no-repeat;
+}
+#wot-reputation.accessible[reputation="r5"] {
+	background: url("../skin/fusion/accessible/28_28/r5.png") top left no-repeat;
+}#wot-reputation.accessible[reputation="rx"] {
+	background: url("../skin/fusion/28_28/rx.png") top left no-repeat;
+}

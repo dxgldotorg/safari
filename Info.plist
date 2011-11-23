@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>WOT Services Oy</string>
+	<key>Builder Version</key>
+	<string>534.51.22</string>
+	<key>CFBundleDisplayName</key>
+	<string>WOT</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.wotservicesoy.wot</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.5</string>
+	<key>CFBundleVersion</key>
+	<string>1.5</string>
+	<key>Chrome</key>
+	<dict>
+		<key>Global Page</key>
+		<string>background.html</string>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Identifier</key>
+				<string>wot-button</string>
+				<key>Image</key>
+				<string>skin/fusion/16_16/mask/error.png</string>
+				<key>Label</key>
+				<string>WOT</string>
+				<key>Tool Tip</key>
+				<string></string>
+			</dict>
+		</array>
+	</dict>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict>
+			<key>Start</key>
+			<array>
+				<string>wot.js</string>
+				<string>content/common.js</string>
+				<string>content/url.js</string>
+				<string>content/popup.js</string>
+				<string>content/search.js</string>
+				<string>content/warning.js</string>
+				<string>content/rating.js</string>
+				<string>content/my.js</string>
+				<string>content/settings.js</string>
+			</array>
+		</dict>
+		<key>Whitelist</key>
+		<array>
+			<string>http://*/*</string>
+			<string>https://*/*</string>
+		</array>
+	</dict>
+	<key>Description</key>
+	<string>Web of Trust shows you which websites people trust for safe surfing, shopping and searching.</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict>
+			<key>Include Secure Pages</key>
+			<true/>
+			<key>Level</key>
+			<string>All</string>
+		</dict>
+	</dict>
+	<key>Update Manifest URL</key>
+	<string>http://api.mywot.com/safariupdates.plist</string>
+	<key>Website</key>
+	<string>http://www.mywot.com/</string>
+</dict>
+</plist>
