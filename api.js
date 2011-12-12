@@ -32,13 +32,14 @@ $.extend(wot, { api: {
 		errortimeout: 60 * 1000,
 		retrytimeout: {
 			link:	        2 * 1000,
-			query:		   60 * 1000,
+			query:		   30 * 1000,
 			register:	   30 * 1000,
 			reload:	   5 * 60 * 1000,
 			submit:	   5 * 60 * 1000,
 			update:	  15 * 60 * 1000
 		},
-		maxlinkretries: 3
+		maxlinkretries: 3,
+		maxregisterretries: 5
 	},
 
 	state: {},
@@ -130,13 +131,19 @@ $.extend(wot, { api: {
 
 	isregistered: function()
 	{
-		var id  = wot.prefs.get("witness_id");
-		var key = wot.prefs.get("witness_key");
-		var re  = /^[a-f0-9]{40}$/;
+		try {
+			var id  = wot.prefs.get("witness_id");
+			var key = wot.prefs.get("witness_key");
+			var re  = /^[a-f0-9]{40}$/;
 
-		var rv = (re.test(id) && re.test(key));
-		wot.log("api.isregistered: " + rv + ", id = " + id + "\n");
-		return rv;
+			var rv = (re.test(id) && re.test(key));
+			wot.log("api.isregistered: " + rv + ", id = " + id + "\n");
+			return rv;
+		} catch (e) {
+			console.log("api.isregistered: failed with " + e + "\n");
+		}
+
+		return false;
 	},
 
 	retry: function(apiname, params, customtimeout)
@@ -150,35 +157,69 @@ $.extend(wot, { api: {
 		}
 	},
 
+	error: function(message)
+	{
+		console.log(message + "\n");
+
+		var nonce = wot.crypto.getnonce("error");
+
+		var params = {
+			id:		 (wot.witness || {}).id,
+			nonce:   nonce,
+			partner: wot.partner,
+			lang:	 wot.i18n("lang"),
+			version: wot.platform + "-" + wot.version,
+			message: message
+		};
+
+		var components = [];
+
+		for (var i in params) {
+			if (params[i] != null) {
+				components.push(i + "=" + encodeURIComponent(params[i]));
+			}
+		}
+
+		var url = "http://" + this.info.server + "/error?" +
+					components.join("&");
+
+		$.ajax({ url: url });
+	},
+
 	setids: function(tag, data)
 	{
 		try {
 			var elems = data.getElementsByTagName(tag);
 
 			if (!elems || !elems.length) {
+				this.error("api.setids: missing tag " + tag);
 				return false;
 			}
 
 			var id = elems[0].getAttribute("id");
-
-			if (!id || id.length != 40) {
-				return false;
-			}
-
 			var key = elems[0].getAttribute("key");
 
-			if (!key || key.length != 40) {
+			if (!id || !key) {
+				this.error("api.setids: missing attribute");
 				return false;
 			}
+
+			var re  = /^[a-f0-9]{40}$/;
+
+			if (!re.test(id) || !re.test(key)) {
+				this.error("api.setids: invalid data");
+				return false;
+			}
+
+			wot.witness = { id: id, key: key };
 
 			wot.prefs.set("witness_id", id);
 			wot.prefs.set("witness_key", key);
 
 			wot.log("api.setids: id = " + id + "\n");
-
 			return true;
 		} catch (e) {
-			console.log("api.setids: failed with " + e + "\n");
+			this.error("api.setids: failed with " + e);
 		}
 
 		return false;
@@ -448,7 +489,7 @@ $.extend(wot, { api: {
 			});
 	},
 
-	register: function(onsuccess)
+	register: function(onsuccess, retrycount)
 	{
 		onsuccess = onsuccess || function() {};
 
@@ -457,14 +498,33 @@ $.extend(wot, { api: {
 			return true;
 		}
 
+		retrycount = retrycount || 0;
+
+		if (++retrycount > this.info.maxregisterretries) {
+			return false;
+		}
+
 		this.call("register", {
 				secure: true
 			}, {
+				retrycount: retrycount
 			},
-			function(request)
+			function(request, status)
 			{
+				if (request.status == 200) {
+					/* jQuery error */
+					if (wot.api.setids("register", request.responseXML)) {
+						onsuccess();
+						wot.api.error("api.register: recovered from jQuery " +
+							"error: " + status);
+						return;
+					}
+				}
+
 				if (request.status != 403) {
-					wot.api.retry("register", [ onsuccess ]);
+					wot.api.retry("register", [ onsuccess, retrycount ]);
+					wot.api.error("api.register: failed with status " +
+						request.status + " (" + status + ")");
 				}
 			},
 			function(data)
@@ -472,7 +532,7 @@ $.extend(wot, { api: {
 				if (wot.api.setids("register", data)) {
 					onsuccess();
 				} else {
-					wot.api.retry("register", [ onsuccess ]);
+					wot.api.retry("register", [ onsuccess, retrycount ]);
 				}
 			});
 	},

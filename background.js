@@ -61,7 +61,7 @@ $.extend(wot, { core: {
 				});
 			});
 		} else {
-			wot.core.updatetabstate(tab, { status: "notready" });
+			wot.core.updatetabstate(tab, { status: "notready", cached: {} });
 		}
 	},
 
