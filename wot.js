@@ -224,7 +224,10 @@ var wot = {
 			proxy = safari.self.tab;
 		}
 
-		proxy.dispatchMessage(data.message, data);
+		if(proxy) {
+			proxy.dispatchMessage(data.message, data);
+		}
+
 	},
 
 	/* i18n */

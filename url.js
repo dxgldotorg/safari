@@ -67,26 +67,28 @@ $.extend(wot, { url: {
 
 	gethostname: function(url)
 	{
-		try {
-			url = url.replace(/^\s*/, "").replace(/\s*$/, "");
+		if(url) {
+			try {
+				url = url.replace(/^\s*/, "").replace(/\s*$/, "");
 
-			if (this.issupportedscheme(url)) {
-				var match = this.host.re.exec(url);
+				if (this.issupportedscheme(url)) {
+					var match = this.host.re.exec(url);
 
-				if (match && match[this.host.host]) {
-					var host = wot.idn.toascii(match[this.host.host]);
+					if (match && match[this.host.host]) {
+						var host = wot.idn.toascii(match[this.host.host]);
 
-					while (this.isequivalent(host)) {
-						host = this.getparent(host);
-					}
+						while (this.isequivalent(host)) {
+							host = this.getparent(host);
+						}
 
-					if (!this.isprivate(host)) {
-						return this.encodehostname(host, match[this.host.path]);
+						if (!this.isprivate(host)) {
+							return this.encodehostname(host, match[this.host.path]);
+						}
 					}
 				}
+			} catch (e) {
+				console.log("url.gethostname: failed with " + e + "\n");
 			}
-		} catch (e) {
-			console.log("url.gethostname: failed with " + e + "\n");
 		}
 
 		return null;
