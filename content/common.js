@@ -78,6 +78,8 @@ wot.prefs = {
 
 	load: function(list, onget, onready)
 	{
+		wot.log('common.js / prefs.load()');
+
 		var toget = [];
 
 		list.forEach(function(item) {
@@ -108,9 +110,13 @@ wot.prefs = {
 	onload: function()
 	{
 		wot.addready("prefs", this, function() {
+			wot.log("common.js / prefs.ready() called");
+			wot.log('prefs pending');
+			wot.log(this);
 			for (var i in this.pending) {
 				return false;
 			}
+			wot.log('pref.onload will return true');
 			return true;
 		});
 

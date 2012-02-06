@@ -63,22 +63,22 @@ wot.rating = {
 			}, 3000);
 	},
 
-	togglewindow: function()
-	{
-		var rv = this.toggleframe("wot-rating-window-frame",
-					"content/ratingwindow.html",
-					"border: 0 ! important; " +
-					"height: 100% ! important; " +
-					"left: 0px ! important; " +
-					"position: fixed ! important; " +
-					"top: 0px ! important; " +
-					"width: 100% ! important; " +
-					"z-index: 2147483647 ! important;");
-
-		if (!rv) {
-			wot.post("rating", "openscorecard");
-		}
-	},
+//	togglewindow: function()
+//	{
+//		var rv = this.toggleframe("wot-rating-window-frame",
+//					"content/ratingwindow.html",
+//					"border: 0 ! important; " +
+//					"height: 100% ! important; " +
+//					"left: 0px ! important; " +
+//					"position: fixed ! important; " +
+//					"top: 0px ! important; " +
+//					"width: 100% ! important; " +
+//					"z-index: 2147483647 ! important;");
+//
+//		if (!rv) {
+//			wot.post("rating", "openscorecard");
+//		}
+//	},
 
 	onload: function()
 	{
@@ -86,9 +86,9 @@ wot.rating = {
 			return;
 		}
 
-		wot.bind("message:rating:togglewindow", function(port, data) {
-			wot.rating.togglewindow();
-		});
+//		wot.bind("message:rating:togglewindow", function(port, data) {
+//			wot.rating.togglewindow();
+//		});
 
 		wot.bind("message:rating:toggle", function(port, data) {
 			wot.rating.toggle();

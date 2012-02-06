@@ -127,6 +127,7 @@ $.extend(wot, { prefs: {
 	onload: function()
 	{
 		wot.bind("message:prefs:getm", function(port, data) {
+			wot.log("prefs:getm fired with params: ", port, data);
 			var values = {};
 
 			data.names.forEach(function(item) {

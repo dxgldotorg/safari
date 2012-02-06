@@ -22,7 +22,7 @@ var wot = {
 	version: 20120119,
 	platform: "safari",
 	language: "en",		/* default */
-	debug: false,
+	debug: true,
 	default_component: 0,
 
 	components: [
@@ -95,7 +95,8 @@ var wot = {
 	log: function(s)
 	{
 		if (wot.debug) {
-			console.log(s);
+			// this allows to log from content scripts and popovers
+			safari.extension.globalPage.contentWindow.console.log(arguments);
 		}
 	},
 
@@ -106,10 +107,7 @@ var wot = {
 	trigger: function(name, params, once)
 	{
 		if (this.events[name]) {
-			if (wot.debug) {
-				console.log("trigger: event " + name + ", once = " + once +
-					"\n");
-			}
+				wot.log("trigger: event " + name + ", once = " + once);
 
 			this.events[name].forEach(function(obj) {
 				try {
@@ -214,10 +212,12 @@ var wot = {
 		data = data || {};
 		data.message = name + ":" + message;
 
-		this.log("post: posting " + data.message + "\n");
+		wot.log("post: posting ", arguments);
 
 		if (tab) {
 			proxy = tab.page;
+		} else if (wot.place == "popover") {
+			wot.log("SAFARI", safari);
 		} else if (safari.application) {
 			proxy = safari.application.activeBrowserWindow.activeTab.page;
 		} else {
@@ -225,7 +225,10 @@ var wot = {
 		}
 
 		if(proxy) {
+			wot.log("Proxy for POST: ", proxy);
 			proxy.dispatchMessage(data.message, data);
+		} else {
+			wot.log('wot.post : proxy is not set. Post canceled');
 		}
 
 	},

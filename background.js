@@ -434,25 +434,42 @@ $.extend(wot, { core: {
 				}
 			});
 
-			wot.bind("message:rating:togglewindow", function(port, data) {
-				port.post("togglewindow");
-			});
+//			wot.bind("message:rating:togglewindow", function(port, data) {
+//				port.post("togglewindow");
+//			});
 
 			wot.listen([ "search", "my", "update", "rating" ]);
 
 			/* event handlers */
-
 			safari.application.addEventListener("command", function(e) {
-					if (e.command == "wot-button") {
-						wot.post("rating", "togglewindow");
-					}
+				if (e.command == "showRatingWindow") {
+					console.log('Popover command', e);
+					e.target.showPopover();
+				}
+				});
+
+			safari.application.addEventListener("popover", function(e) {
+					console.log('Popover event');
 				}, false);
 
 			safari.application.addEventListener("validate", function(e) {
-					if (e.command == "wot-button") {
+					if (e.target.identifier === "wot_button") {
 						wot.core.update();
 					}
 				}, false);
+
+
+			// Instantiate Popover and
+			var popup = safari.extension.createPopover("wot_ratewindow", safari.extension.baseURI+"content/ratingwindow.html", 335, 420);
+
+			for(i=0; i < safari.extension.toolbarItems.length; i++) {
+
+				var tbi = safari.extension.toolbarItems[i];
+				if(tbi.identifier == 'wot_button') {
+					tbi.popover = popup;
+					break;
+				}
+			}
 
 			if (wot.debug) {
 				wot.prefs.clear("update:state");

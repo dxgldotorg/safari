@@ -70,7 +70,7 @@ $.extend(wot, { ratingwindow: {
 			wot.post("rating", "navigate", { url: url });
 			this.hide();
 		} catch (e) {
-			console.log("ratingwindow.navigate: failed with " + e + "\n");
+			wot.log("ratingwindow.navigate: failed with " + e);
 		}
 	},
 
@@ -106,7 +106,7 @@ $.extend(wot, { ratingwindow: {
 				return position;
 			}
 		} catch (e) {
-			console.log("ratingwindow.getrating: failed with " + e + "\n");
+			wot.log("ratingwindow.getrating: failed with " + e);
 		}
 
 		return -1;
@@ -288,7 +288,7 @@ $.extend(wot, { ratingwindow: {
 			this.current = data || {};
 			this.updatecontents();
 		} catch (e) {
-			console.log("ratingwindow.update: failed with " + e + "\n");
+			wot.log("ratingwindow.update: failed with " + e);
 		}
 	},
 
@@ -299,8 +299,10 @@ $.extend(wot, { ratingwindow: {
 
 	loadsettings: function(ondone)
 	{
+		wot.log("RW loadsettings()");
+
 		var prefs = [
-			"accessible",
+			"accessible"
 		];
 
 		wot.components.forEach(function(item) {
@@ -310,8 +312,10 @@ $.extend(wot, { ratingwindow: {
 		this.settings = this.settings || {};
 
 		wot.prefs.load(prefs, function(name, value) {
+				wot.log(name + " = " + value);
 				wot.ratingwindow.settings[name] = value;
 			}, ondone);
+
 	},
 
 	onload: function()
@@ -341,6 +345,7 @@ $.extend(wot, { ratingwindow: {
 		wot.components.forEach(function(item) {
 			$("#wot-rating-" + item.name +
 				"-header").text(wot.i18n("components", item.name) + ":");
+			//alert(wot.i18n("components", item.name));
 		});
 
 		[	{	selector: "#wot-header-link-guide",
@@ -478,7 +483,12 @@ $.extend(wot, { ratingwindow: {
 }});
 
 $(document).ready(function() {
+
+	wot.debug = true;
+	wot.place = 'popover';
+
 	wot.ratingwindow.loadsettings(function() {
+		wot.log('RW settings loaded');
 		wot.ratingwindow.onload();
 	});
 });
