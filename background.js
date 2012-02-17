@@ -147,7 +147,7 @@ $.extend(wot, { core: {
 				}
 			}
 		} catch (e) {
-			console.log("core.seticon: failed with " + e);
+			wot.flog("core.seticon: failed with " + e);
 		}
 	},
 
@@ -184,7 +184,7 @@ $.extend(wot, { core: {
 			}
 
 		} catch (e) {
-			console.log("core.updatetabstate: failed with " + e);
+			wot.flog("core.updatetabstate: failed with " + e);
 		}
 	},
 
@@ -225,7 +225,7 @@ $.extend(wot, { core: {
 					}, tab);
 			}
 		} catch (e) {
-			wot.log("core.updatetabwarning: failed with " + e);
+			wot.flog("core.updatetabwarning: failed with " + e);
 		}
 	},
 
@@ -260,7 +260,7 @@ $.extend(wot, { core: {
 				}
 			}
 		} catch (e) {
-			console.log("core.setusermessage: failed with " + e + "\n");
+			wot.flog("core.setusermessage: failed with " + e);
 		}
 	},
 
@@ -295,7 +295,7 @@ $.extend(wot, { core: {
 				}
 			}
 		} catch (e) {
-			console.log("core.setusercontent: failed with " + e + "\n");
+			wot.flog("core.setusercontent: failed with " + e);
 		}
 	},
 
@@ -310,7 +310,7 @@ $.extend(wot, { core: {
 				wot.prefs.clear("status_level");
 			}
 		} catch (e) {
-			console.log("core.setuserlevel: failed with " + e + "\n");
+			wot.flog("core.setuserlevel: failed with " + e);
 		}
 	},
 
@@ -353,9 +353,8 @@ $.extend(wot, { core: {
 
 	},
 
-	finishstate: function(data) {
-
-		wot.log('finishstate()');
+	finishstate: function(data)
+	{
 		/* message was shown */
 		if (wot.core.unseenmessage()) {
 			wot.prefs.set("last_message", wot.core.usermessage.id);
@@ -376,16 +375,10 @@ $.extend(wot, { core: {
 
 			wot.api.submit(data.state.target, params);
 		}
-
-		/* update all views */
-		//wot.core.update();
-
 	},
 
 	onload: function()
 	{
-		//var _this = this;
-
 		try {
 			/* messages */
 
@@ -475,10 +468,6 @@ $.extend(wot, { core: {
 				}
 			});
 
-//			wot.bind("message:rating:togglewindow", function(port, data) {
-//				port.post("togglewindow");
-//			});
-
 			wot.listen([ "search", "my", "update", "rating" ]);
 
 			/* event handlers */
@@ -488,9 +477,6 @@ $.extend(wot, { core: {
 				}
 				});
 
-//			safari.application.addEventListener("popover", function(e) {
-//				}, false);
-
 			// Instantiate Popover and attach it to all windows-wot-toolbars
 			safari.extension.popovers.forEach(function(item) {
 				if(item.identifier == "wot_ratewindow") {
@@ -498,8 +484,9 @@ $.extend(wot, { core: {
 				}
 			});
 
-			if(!wot.popup) {
-				wot.popover = safari.extension.createPopover("wot_ratewindow", safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
+			if(!wot.popover) {
+				wot.popover = safari.extension.createPopover("wot_ratewindow",
+					safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
 			}
 
 			this.attach_popover();
@@ -524,21 +511,18 @@ $.extend(wot, { core: {
 				wot.prefs.clear("update:state");
 
 				wot.bind("cache:set", function(name, value) {
-					console.log("cache.set: " + name + " = " +
+					wot.flog("cache.set: " + name + " = " +
 						JSON.stringify(value));
 				});
 
 				wot.bind("prefs:set", function(name, value) {
-					console.log("prefs.set: " + name + " = " +
+					wot.flog("prefs.set: " + name + " = " +
 						JSON.stringify(value));
 				});
 			}
 
 			/* initialize */
 			wot.api.register(function() {
-
-				// this call is disabled, cause it fails api.query with proper lang for some reason.
-				//wot.core.update();
 
 				if (wot.api.isregistered()) {
 					wot.api.setcookies();
@@ -551,7 +535,7 @@ $.extend(wot, { core: {
 
 
 		} catch (e) {
-			console.log("core.onload: failed with " + e);
+			wot.flog("core.onload: failed with " + e);
 		}
 	}
 }});
