@@ -331,6 +331,10 @@ $.extend(wot, { core: {
 		try {
 			/* messages */
 
+			wot.bind("prefs:set", function(name, value) {
+				wot.popover.contentWindow.wot.ratingwindow.update_settings();
+			});
+
 			wot.bind("message:search:hello", function(port, data) {
 				wot.core.processrules(data.url, function(rule) {
 					port.post("process", { url: data.url, rule: rule });
