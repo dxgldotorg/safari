@@ -489,7 +489,9 @@ $.extend(wot, { core: {
 			/* initialize */
 
 			wot.api.register(function() {
-				wot.core.update();
+
+				// this call is disabled, cause it fails api.query with proper lang for some reason.
+				//wot.core.update();
 
 				if (wot.api.isregistered()) {
 					wot.api.setcookies();
