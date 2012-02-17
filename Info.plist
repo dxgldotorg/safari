@@ -23,14 +23,20 @@
 		<key>Toolbar Items</key>
 		<array>
 			<dict>
+				<key>Command</key>
+				<string>showRatingWindow</string>
 				<key>Identifier</key>
-				<string>wot-button</string>
+				<string>wot_button</string>
 				<key>Image</key>
 				<string>skin/fusion/16_16/mask/error.png</string>
+				<key>Include By Default</key>
+				<true/>
 				<key>Label</key>
 				<string>WOT</string>
-				<key>Tool Tip</key>
+				<key>Popover</key>
 				<string></string>
+				<key>Tool Tip</key>
+				<string>Web Of Trust</string>
 			</dict>
 		</array>
 	</dict>

@@ -1,6 +1,6 @@
 /*
 	api.js
-	Copyright © 2009, 2010, 2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -93,7 +93,7 @@ $.extend(wot, { api: {
 			var url = ((this.info.secure && options.secure) ?
 							"https://" : "http://") + this.info.server + path;
 
-			wot.log("api.call: url = " + url + "\n");
+			wot.log("api.call: url = " + url);
 
 			$.ajax({
 				dataType: "xml",
@@ -103,7 +103,7 @@ $.extend(wot, { api: {
 				error: function(request, status, error)
 				{
 					console.log("api.call.error: url = " + url + ", status = " +
-						status + "\n");
+						status);
 
 					if (typeof(onerror) == "function") {
 						onerror(request, status, error);
@@ -113,7 +113,7 @@ $.extend(wot, { api: {
 				success: function(data, status)
 				{
 					wot.log("api.call.success: url = " + url + ", status = " +
-						status + "\n");
+						status);
 
 					if (typeof(onsuccess) == "function") {
 						onsuccess(data, status, nonce);

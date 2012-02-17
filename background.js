@@ -44,13 +44,13 @@ $.extend(wot, { core: {
 		try {
 			wot.core.updatetab(safari.application.activeBrowserWindow.activeTab);
 		} catch (e) {
-			console.log("core.update: failed with " + e + "\n");
+			console.log("core.update: failed with " + e);
 		}
 	},
 
 	updatetab: function(tab)
 	{
-		wot.log("core.updatetab: " + tab.url + "\n");
+		wot.log("core.updatetab: " + tab.url);
 
 		if (wot.api.isregistered()) {
 			wot.core.loadratings(tab.url, function(hosts) {
@@ -135,19 +135,19 @@ $.extend(wot, { core: {
 	seticon: function(tab, data)
 	{
 		try {
-			wot.log("core.seticon: " + tab.url + "\n");
+			wot.log("core.seticon: " + tab.url);
 
 			for (var i = 0; i < safari.extension.toolbarItems.length; ++i) {
 				var button = safari.extension.toolbarItems[i];
 
 				if (button.browserWindow == tab.browserWindow) {
 					var image = wot.geticon(this.getmaskicon(this.geticon(data)),
-										16, wot.prefs.get("accessible"))
+										16, wot.prefs.get("accessible"));
 					button.image = safari.extension.baseURI + image;
 				}
 			}
 		} catch (e) {
-			console.log("core.seticon: failed with " + e + "\n");
+			wot.flog("core.seticon: failed with " + e);
 		}
 	},
 
@@ -162,15 +162,29 @@ $.extend(wot, { core: {
 			/* update content scripts */
 			this.updatetabwarning(tab, data);
 
+			var usercontent =  {
+				message: wot.core.usermessage,
+					content: wot.core.usercontent
+			};
+
 			wot.post("status", "update", {
 					data: data,
-					usercontent: {
-						message: wot.core.usermessage,
-						content: wot.core.usercontent
-					}
+					usercontent: usercontent
 				}, tab);
+
+			// also, call ratingwindow.update()
+			if(wot.popover && wot.popover.contentWindow
+				&& wot.popover.contentWindow.wot) {
+				var ratingwindow = wot.popover.contentWindow.wot.ratingwindow;
+
+				if(ratingwindow) {
+					ratingwindow.usercontent = usercontent;
+					ratingwindow.update(data);
+				}
+			}
+
 		} catch (e) {
-			console.log("core.updatetabstate: failed with " + e + "\n");
+			wot.flog("core.updatetabstate: failed with " + e);
 		}
 	},
 
@@ -211,7 +225,7 @@ $.extend(wot, { core: {
 					}, tab);
 			}
 		} catch (e) {
-			wot.log("core.updatetabwarning: failed with " + e + "\n");
+			wot.flog("core.updatetabwarning: failed with " + e);
 		}
 	},
 
@@ -246,7 +260,7 @@ $.extend(wot, { core: {
 				}
 			}
 		} catch (e) {
-			console.log("core.setusermessage: failed with " + e + "\n");
+			wot.flog("core.setusermessage: failed with " + e);
 		}
 	},
 
@@ -281,7 +295,7 @@ $.extend(wot, { core: {
 				}
 			}
 		} catch (e) {
-			console.log("core.setusercontent: failed with " + e + "\n");
+			wot.flog("core.setusercontent: failed with " + e);
 		}
 	},
 
@@ -296,7 +310,7 @@ $.extend(wot, { core: {
 				wot.prefs.clear("status_level");
 			}
 		} catch (e) {
-			console.log("core.setuserlevel: failed with " + e + "\n");
+			wot.flog("core.setuserlevel: failed with " + e);
 		}
 	},
 
@@ -326,10 +340,51 @@ $.extend(wot, { core: {
 		return false;
 	},
 
+	attach_popover: function()
+	{
+		// walk through all windows/toolbars and attach popover
+		for(i=0; i < safari.extension.toolbarItems.length; i++) {
+
+			var tbi = safari.extension.toolbarItems[i];
+			if(tbi.identifier == 'wot_button' && !tbi.popover) {
+				tbi.popover = wot.popover;
+			}
+		}
+
+	},
+
+	finishstate: function(data)
+	{
+		/* message was shown */
+		if (wot.core.unseenmessage()) {
+			wot.prefs.set("last_message", wot.core.usermessage.id);
+		}
+
+		/* check for rating changes */
+		if (wot.cache.cacheratingstate(data.state.target,
+			data.state)) {
+			/* submit new ratings */
+			var params = {};
+
+			wot.components.forEach(function(item) {
+				if (data.state[item.name]) {
+					params["testimony_" + item.name] =
+						data.state[item.name].t;
+				}
+			});
+
+			wot.api.submit(data.state.target, params);
+		}
+	},
+
 	onload: function()
 	{
 		try {
 			/* messages */
+
+			wot.bind("prefs:set", function(name, value) {
+				wot.popover.contentWindow.wot.ratingwindow.update_settings();
+			});
 
 			wot.bind("message:search:hello", function(port, data) {
 				wot.core.processrules(data.url, function(rule) {
@@ -371,29 +426,7 @@ $.extend(wot, { core: {
 			});
 
 			wot.bind("message:rating:finishstate", function(port, data) {
-				/* message was shown */
-				if (wot.core.unseenmessage()) {
-					wot.prefs.set("last_message", wot.core.usermessage.id);
-				}
-
-				/* check for rating changes */
-				if (wot.cache.cacheratingstate(data.state.target,
-							data.state)) {
-					/* submit new ratings */
-					var params = {};
-
-					wot.components.forEach(function(item) {
-						if (data.state[item.name]) {
-							params["testimony_" + item.name] =
-								data.state[item.name].t;
-						}
-					});
-
-					wot.api.submit(data.state.target, params);
-				}
-
-				/* update all views */
-				wot.core.update();
+				wot.core.finishstate(data);
 			});
 
 			wot.bind("message:rating:navigate", function(port, data) {
@@ -435,44 +468,61 @@ $.extend(wot, { core: {
 				}
 			});
 
-			wot.bind("message:rating:togglewindow", function(port, data) {
-				port.post("togglewindow");
-			});
-
 			wot.listen([ "search", "my", "update", "rating" ]);
 
 			/* event handlers */
-
 			safari.application.addEventListener("command", function(e) {
-					if (e.command == "wot-button") {
-						wot.post("rating", "togglewindow");
-					}
-				}, false);
+				if (e.command == "showRatingWindow") {
+					e.target.showPopover();
+				}
+				});
+
+			// Instantiate Popover and attach it to all windows-wot-toolbars
+			safari.extension.popovers.forEach(function(item) {
+				if(item.identifier == "wot_ratewindow") {
+					wot.popover = item;
+				}
+			});
+
+			if(!wot.popover) {
+				wot.popover = safari.extension.createPopover("wot_ratewindow",
+					safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
+			}
+
+			this.attach_popover();
+
+
+			// Attach popover to a newly created window (toolbar)
+			safari.application.addEventListener("open", function(e) {
+				// react only if target = SafariBrowserWindow (contains tabs array)
+				if(e.target instanceof window.SafariBrowserWindow) {
+					wot.core.attach_popover();
+				}
+			}, true);
 
 			safari.application.addEventListener("validate", function(e) {
-					if (e.command == "wot-button") {
-						wot.core.update();
-					}
-				}, false);
+				if (e.target.identifier === "wot_button") {
+					wot.core.update();
+				}
+			}, false);
+
 
 			if (wot.debug) {
 				wot.prefs.clear("update:state");
 
 				wot.bind("cache:set", function(name, value) {
-					console.log("cache.set: " + name + " = " +
-						JSON.stringify(value) + "\n");
+					wot.flog("cache.set: " + name + " = " +
+						JSON.stringify(value));
 				});
 
 				wot.bind("prefs:set", function(name, value) {
-					console.log("prefs.set: " + name + " = " +
-						JSON.stringify(value) + "\n");
+					wot.flog("prefs.set: " + name + " = " +
+						JSON.stringify(value));
 				});
 			}
 
 			/* initialize */
-
 			wot.api.register(function() {
-				wot.core.update();
 
 				if (wot.api.isregistered()) {
 					wot.api.setcookies();
@@ -482,8 +532,10 @@ $.extend(wot, { core: {
 			});
 
 			wot.cache.purge();
+
+
 		} catch (e) {
-			console.log("core.onload: failed with " + e + "\n");
+			wot.flog("core.onload: failed with " + e);
 		}
 	}
 }});

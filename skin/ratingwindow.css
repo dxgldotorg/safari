@@ -20,14 +20,17 @@
 
 body {
 	overflow: hidden;
-	padding: 10px;
+	padding: 0px;
+	cursor: default;
+	-webkit-user-select: none;
 }
+
 #wot-ratingwindow {
 	display: block;
 	background-color: white;
-	border: 1px solid gray;
+	border: 0px solid #eee;
 	border-radius: 3px 3px;
-	padding: 5px;
+	padding: 1px;
 	width: 319px;
 }
 #wot-elements {

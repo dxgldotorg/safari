@@ -95,10 +95,21 @@ var wot = {
 	log: function(s)
 	{
 		if (wot.debug) {
-			console.log(s);
+			// this allows to log from content scripts and popovers
+			this.flog.apply(this, arguments);
 		}
 	},
 
+	flog: function(s)
+	{	// Forced log
+		if(safari.extension.globalPage) {
+			safari.extension.globalPage.contentWindow.console.log(arguments);
+		} else {
+			// if called from injected script
+			console.log(arguments);
+		}
+
+	},
 	/* events */
 
 	events: {},
@@ -106,17 +117,13 @@ var wot = {
 	trigger: function(name, params, once)
 	{
 		if (this.events[name]) {
-			if (wot.debug) {
-				console.log("trigger: event " + name + ", once = " + once +
-					"\n");
-			}
+				wot.log("trigger: event " + name + ", once = " + once);
 
 			this.events[name].forEach(function(obj) {
 				try {
 					obj.func.apply(null, [].concat(params).concat(obj.params));
 				} catch (e) {
-					console.log("trigger: event " + name + " failed with " +
-						e + "\n");
+					wot.flog("trigger: event " + name + " failed with " + e);
 				}
 			});
 
@@ -132,9 +139,7 @@ var wot = {
 			this.events[name] = this.events[name] || [];
 			this.events[name].push({ func: func, params: params || [] });
 
-			if (wot.debug) {
-				console.log("bind: event " + name + "\n");
-			}
+			wot.log("bind: event " + name);
 			this.trigger("bind:" + name);
 		}
 	},
@@ -214,10 +219,12 @@ var wot = {
 		data = data || {};
 		data.message = name + ":" + message;
 
-		this.log("post: posting " + data.message + "\n");
+		//wot.log("post: posting ", arguments);
 
 		if (tab) {
 			proxy = tab.page;
+		} else if (wot.place == "popover") {
+			//wot.log("SAFARI", safari);
 		} else if (safari.application) {
 			proxy = safari.application.activeBrowserWindow.activeTab.page;
 		} else {
@@ -225,7 +232,10 @@ var wot = {
 		}
 
 		if(proxy) {
+			//wot.log("Proxy for POST: ", proxy);
 			proxy.dispatchMessage(data.message, data);
+		} else {
+			wot.log('wot.post : proxy is not set. Post canceled');
 		}
 
 	},
