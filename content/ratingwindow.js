@@ -354,25 +354,32 @@ $.extend(wot, { ratingwindow: {
 	{
 		// helper to call from background page to update settings
 		var rw = wot.ratingwindow;
-		rw.loadsettings(rw.onload);
-		rw.resize_popover();
+		rw.loadsettings(function() {
+			rw.update_accessibility();
+			rw.resize_popover();
+		});
+	},
+
+	update_accessibility: function()
+	{
+		/* accessibility */
+		$("#wot-header-logo, " +
+			"#wot-header-button, " +
+			".wot-header-link, " +
+			"#wot-title-text, " +
+			".wot-rating-reputation, " +
+			".wot-rating-slider, " +
+			".wot-rating-helplink, " +
+			"#wot-scorecard-content, " +
+			".wot-scorecard-text, " +
+			".wot-user-text, " +
+			"#wot-message-text")
+			.toggleClass("accessible", this.settings.accessible);
 	},
 
 	onload: function()
 	{
-		/* accessibility */
-		$("#wot-header-logo, " +
-				"#wot-header-button, " +
-				".wot-header-link, " +
-				"#wot-title-text, " +
-				".wot-rating-reputation, " +
-				".wot-rating-slider, " +
-				".wot-rating-helplink, " +
-				"#wot-scorecard-content, " +
-				".wot-scorecard-text, " +
-				".wot-user-text, " +
-				"#wot-message-text")
-			.toggleClass("accessible", this.settings.accessible);
+		this.update_accessibility();
 
 		/* texts */
 
@@ -413,6 +420,8 @@ $.extend(wot, { ratingwindow: {
 		if (wot.partner) {
 			$("#wot-partner").attr("partner", wot.partner);
 		}
+
+		this.resize_popover();
 
 		/* user interface event handlers */
 
@@ -503,8 +512,6 @@ $.extend(wot, { ratingwindow: {
 			event.stopPropagation();
 		});
 
-		this.resize_popover();
-
 		$("body").bind("click", function(e) {
 			wot.ratingwindow.hide();
 		});
@@ -520,7 +527,6 @@ $.extend(wot, { ratingwindow: {
 
 $(document).ready(function() {
 
-	wot.debug = true;
 	wot.place = 'popover';
 
 	wot.ratingwindow.loadsettings(function() {
