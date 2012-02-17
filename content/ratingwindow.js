@@ -1,6 +1,6 @@
 /*
 	ratingwindow.js
-	Copyright © 2009, 2010  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -21,6 +21,8 @@
 $.extend(wot, { ratingwindow: {
 	sliderwidth: 194,
 
+	bg_page: safari.extension.globalPage.contentWindow,
+
 	/* rating state */
 
 	state: {},
@@ -28,8 +30,14 @@ $.extend(wot, { ratingwindow: {
 	updatestate: function(target, data)
 	{
 		/* initialize on target change */
+		// check if state was changed
 		if (this.state.target != target) {
-			this.finishstate();
+
+			// prevent loop in case of no previous state
+			if(this.state.target) {
+				this.finishstate();
+			}
+
 			this.state = { target: target, down: -1 };
 		}
 
@@ -62,7 +70,8 @@ $.extend(wot, { ratingwindow: {
 
 	finishstate: function()
 	{
-		wot.post("rating", "finishstate", { state: this.state });
+		this.bg_page.wot.core.finishstate({ state: this.state });
+		//wot.post("rating", "finishstate", { state: this.state });
 	},
 
 	/* helpers */
@@ -70,8 +79,11 @@ $.extend(wot, { ratingwindow: {
 	navigate: function(url)
 	{
 		try {
-			wot.post("rating", "navigate", { url: url });
 			this.hide();
+
+			var newTab = safari.application.activeBrowserWindow.openTab();
+			newTab.url = url;
+
 		} catch (e) {
 			wot.log("ratingwindow.navigate: failed with " + e);
 		}
@@ -285,6 +297,14 @@ $.extend(wot, { ratingwindow: {
 
 		/* partner */
 		$("#wot-partner").attr("partner", wot.partner || "");
+
+		this.resize_popover();
+	},
+
+	resize_popover: function ()
+	{
+		var popover = this.bg_page.wot.popover;
+		popover.height = 10 + $("body").outerHeight();
 	},
 
 	update: function(data)
@@ -299,12 +319,11 @@ $.extend(wot, { ratingwindow: {
 
 	hide: function()
 	{
-		wot.post("rating", "togglewindow");
+		this.bg_page.wot.popover.hide();
 	},
 
 	loadsettings: function(ondone)
 	{
-		wot.log("RW loadsettings()");
 
 		var prefs = [
 			"accessible"
@@ -316,22 +335,31 @@ $.extend(wot, { ratingwindow: {
 
 		this.settings = this.settings || {};
 
-		wot.prefs.load(prefs, function(name, value) {
-				wot.log(name + " = " + value);
-				wot.ratingwindow.settings[name] = value;
-			}, ondone);
+		// here we don't need to use messaging. Just let's get data from
+		// background WOT page directly
+		var rw = wot.ratingwindow; // for speedup purpose
 
+		prefs.forEach(function(item){
+			rw.settings[item] = rw.bg_page.wot.prefs.get(item);
+		});
+
+		wot.alllocales = rw.bg_page.wot.alllocales;
+		wot.language = rw.bg_page.wot.language;
+
+		ondone();
+
+	},
+
+	update_settings: function()
+	{
+		// helper to call from background page to update settings
+		var rw = wot.ratingwindow;
+		rw.loadsettings(rw.onload);
+		rw.resize_popover();
 	},
 
 	onload: function()
 	{
-		wot.bind("message:status:update", function(port, data) {
-			wot.ratingwindow.usercontent = data.usercontent;
-			wot.ratingwindow.update(data.data);
-		});
-
-		wot.listen("status");
-
 		/* accessibility */
 		$("#wot-header-logo, " +
 				"#wot-header-button, " +
@@ -347,10 +375,11 @@ $.extend(wot, { ratingwindow: {
 			.toggleClass("accessible", this.settings.accessible);
 
 		/* texts */
+
 		wot.components.forEach(function(item) {
-			$("#wot-rating-" + item.name +
-				"-header").text(wot.i18n("components", item.name) + ":");
-			//alert(wot.i18n("components", item.name));
+
+			var comp = $("#wot-rating-" + item.name + "-header");
+			comp.text(wot.i18n("components", item.name) + ":");
 		});
 
 		[	{	selector: "#wot-header-link-guide",
@@ -474,6 +503,8 @@ $.extend(wot, { ratingwindow: {
 			event.stopPropagation();
 		});
 
+		this.resize_popover();
+
 		$("body").bind("click", function(e) {
 			wot.ratingwindow.hide();
 		});
@@ -493,7 +524,6 @@ $(document).ready(function() {
 	wot.place = 'popover';
 
 	wot.ratingwindow.loadsettings(function() {
-		wot.log('RW settings loaded');
 		wot.ratingwindow.onload();
 	});
 });

@@ -22,7 +22,7 @@ var wot = {
 	version: 20120214,
 	platform: "safari",
 	language: "en",		/* default */
-	debug: true,
+	debug: false,
 	default_component: 0,
 
 	components: [
@@ -96,10 +96,20 @@ var wot = {
 	{
 		if (wot.debug) {
 			// this allows to log from content scripts and popovers
-			safari.extension.globalPage.contentWindow.console.log(arguments);
+			this.flog.apply(this, arguments);
 		}
 	},
 
+	flog: function(s)
+	{	// Forced log
+		if(safari.extension.globalPage) {
+			safari.extension.globalPage.contentWindow.console.log(arguments);
+		} else {
+			// if called from injected script
+			console.log(arguments);
+		}
+
+	},
 	/* events */
 
 	events: {},
@@ -113,8 +123,7 @@ var wot = {
 				try {
 					obj.func.apply(null, [].concat(params).concat(obj.params));
 				} catch (e) {
-					console.log("trigger: event " + name + " failed with " +
-						e + "\n");
+					wot.flog("trigger: event " + name + " failed with " + e);
 				}
 			});
 
@@ -130,9 +139,7 @@ var wot = {
 			this.events[name] = this.events[name] || [];
 			this.events[name].push({ func: func, params: params || [] });
 
-			if (wot.debug) {
-				console.log("bind: event " + name + "\n");
-			}
+			wot.log("bind: event " + name);
 			this.trigger("bind:" + name);
 		}
 	},
@@ -212,12 +219,12 @@ var wot = {
 		data = data || {};
 		data.message = name + ":" + message;
 
-		wot.log("post: posting ", arguments);
+		//wot.log("post: posting ", arguments);
 
 		if (tab) {
 			proxy = tab.page;
 		} else if (wot.place == "popover") {
-			wot.log("SAFARI", safari);
+			//wot.log("SAFARI", safari);
 		} else if (safari.application) {
 			proxy = safari.application.activeBrowserWindow.activeTab.page;
 		} else {
@@ -225,7 +232,7 @@ var wot = {
 		}
 
 		if(proxy) {
-			wot.log("Proxy for POST: ", proxy);
+			//wot.log("Proxy for POST: ", proxy);
 			proxy.dispatchMessage(data.message, data);
 		} else {
 			wot.log('wot.post : proxy is not set. Post canceled');
