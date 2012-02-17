@@ -26,9 +26,9 @@ body {
 #wot-ratingwindow {
 	display: block;
 	background-color: white;
-	border: 1px solid #eee;
+	border: 0px solid #eee;
 	border-radius: 3px 3px;
-	padding: 0px;
+	padding: 1px;
 	width: 319px;
 }
 #wot-elements {
