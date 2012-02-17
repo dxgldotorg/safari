@@ -21,6 +21,8 @@
 body {
 	overflow: hidden;
 	padding: 0px;
+	cursor: default;
+	-webkit-user-select: none;
 }
 
 #wot-ratingwindow {
