@@ -1,6 +1,6 @@
 /*
 	api.js
-	Copyright © 2009, 2010, 2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
