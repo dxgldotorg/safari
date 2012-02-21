@@ -383,7 +383,14 @@ $.extend(wot, { core: {
 			/* messages */
 
 			wot.bind("prefs:set", function(name, value) {
-				wot.popover.contentWindow.wot.ratingwindow.update_settings();
+				var upds = wot.popover.contentWindow.wot.ratingwindow.update_settings;
+				try {
+					upds();
+				} catch (e) {
+					// it is possible to get exception when window is not inited
+					setTimeout(upds, 500);
+				}
+
 			});
 
 			wot.bind("message:search:hello", function(port, data) {
@@ -502,6 +509,12 @@ $.extend(wot, { core: {
 
 			safari.application.addEventListener("validate", function(e) {
 				if (e.target.identifier === "wot_button") {
+
+					var rw = wot.popover.contentWindow.wot.ratingwindow;
+					if(rw.state) {
+						wot.core.finishstate({state: rw.state});
+					}
+
 					wot.core.update();
 				}
 			}, false);
