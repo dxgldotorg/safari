@@ -382,16 +382,19 @@ $.extend(wot, { core: {
 		try {
 			/* messages */
 
-			wot.bind("prefs:set", function(name, value) {
-				var upds = wot.popover.contentWindow.wot.ratingwindow.update_settings;
-				try {
-					upds();
-				} catch (e) {
-					// it is possible to get exception when window is not inited
-					setTimeout(upds, 500);
-				}
+			wot.use_popover = !!safari.extension.createPopover;
 
-			});
+			if(wot.use_popover) {
+				wot.bind("prefs:set", function(name, value) {
+					var upds = wot.popover.contentWindow.wot.ratingwindow.update_settings;
+					try {
+						upds();
+					} catch (e) {
+						// it is possible to get exception when window is not inited
+						setTimeout(upds, 500);
+					}
+				});
+			}
 
 			wot.bind("message:search:hello", function(port, data) {
 				wot.core.processrules(data.url, function(rule) {
@@ -475,50 +478,73 @@ $.extend(wot, { core: {
 				}
 			});
 
-			wot.listen([ "search", "my", "update", "rating" ]);
+			if(wot.use_popover) {
+				/* event handlers */
+				safari.application.addEventListener("command", function(e) {
+					if (e.command == "showRatingWindow") {
+						e.target.showPopover();
+					}
+					});
 
-			/* event handlers */
-			safari.application.addEventListener("command", function(e) {
-				if (e.command == "showRatingWindow") {
-					e.target.showPopover();
-				}
+				// Instantiate Popover and attach it to all windows-wot-toolbars
+				safari.extension.popovers.forEach(function(item) {
+					if(item.identifier == "wot_ratewindow") {
+						wot.popover = item;
+					}
 				});
 
-			// Instantiate Popover and attach it to all windows-wot-toolbars
-			safari.extension.popovers.forEach(function(item) {
-				if(item.identifier == "wot_ratewindow") {
-					wot.popover = item;
+				if(!wot.popover) {
+					wot.popover = safari.extension.createPopover("wot_ratewindow",
+						safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
 				}
-			});
 
-			if(!wot.popover) {
-				wot.popover = safari.extension.createPopover("wot_ratewindow",
-					safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
+				this.attach_popover();
+
+
+				// Attach popover to a newly created window (toolbar)
+				safari.application.addEventListener("open", function(e) {
+					// react only if target = SafariBrowserWindow (contains tabs array)
+					if(e.target instanceof window.SafariBrowserWindow) {
+						wot.core.attach_popover();
+					}
+				}, true);
+
+				safari.application.addEventListener("validate", function(e) {
+					if (e.target.identifier === "wot_button") {
+
+						var rw = wot.popover.contentWindow.wot.ratingwindow;
+						if(rw.state) {
+							wot.core.finishstate({state: rw.state});
+						}
+
+						wot.core.update();
+					}
+				}, false);
+			} else {
+
+				// This part is used for old Safari (<5.1) which don't
+				// support Popovers feature
+
+				wot.bind("message:rating:togglewindow", function(port, data) {
+					port.post("togglewindow");
+				});
+
+				/* event handlers */
+
+				safari.application.addEventListener("command", function(e) {
+					if (e.command == "showRatingWindow") {
+						wot.post("rating", "togglewindow");
+					}
+				}, false);
+
+				safari.application.addEventListener("validate", function(e) {
+					if (e.command == "showRatingWindow") {
+						wot.core.update();
+					}
+				}, false);
 			}
 
-			this.attach_popover();
-
-
-			// Attach popover to a newly created window (toolbar)
-			safari.application.addEventListener("open", function(e) {
-				// react only if target = SafariBrowserWindow (contains tabs array)
-				if(e.target instanceof window.SafariBrowserWindow) {
-					wot.core.attach_popover();
-				}
-			}, true);
-
-			safari.application.addEventListener("validate", function(e) {
-				if (e.target.identifier === "wot_button") {
-
-					var rw = wot.popover.contentWindow.wot.ratingwindow;
-					if(rw.state) {
-						wot.core.finishstate({state: rw.state});
-					}
-
-					wot.core.update();
-				}
-			}, false);
-
+			wot.listen([ "search", "my", "update", "rating" ]);
 
 			if (wot.debug) {
 				wot.prefs.clear("update:state");
@@ -536,6 +562,10 @@ $.extend(wot, { core: {
 
 			/* initialize */
 			wot.api.register(function() {
+
+				if(!wot.use_popover) {
+					wot.core.update();
+				}
 
 				if (wot.api.isregistered()) {
 					wot.api.setcookies();

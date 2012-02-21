@@ -1,0 +1,11 @@
+/* This styles override ratingwindow.css for injected RatingWindow, which is used
+ only for old Safari (<5.1) without Popover feature */
+
+body {
+	padding: 10px;
+}
+
+#wot-ratingwindow {
+	border: 1px solid gray;
+	padding: 5px;
+}

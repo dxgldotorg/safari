@@ -24,6 +24,7 @@ var wot = {
 	language: "en",		/* default */
 	debug: false,
 	default_component: 0,
+	use_popover: false, // enable Popover feature (in Safari >= 5.1)
 
 	components: [
 		{ name: 0 },

@@ -63,22 +63,27 @@ wot.rating = {
 			}, 3000);
 	},
 
-//	togglewindow: function()
-//	{
-//		var rv = this.toggleframe("wot-rating-window-frame",
-//					"content/ratingwindow.html",
-//					"border: 0 ! important; " +
-//					"height: 100% ! important; " +
-//					"left: 0px ! important; " +
-//					"position: fixed ! important; " +
-//					"top: 0px ! important; " +
-//					"width: 100% ! important; " +
-//					"z-index: 2147483647 ! important;");
-//
-//		if (!rv) {
-//			wot.post("rating", "openscorecard");
-//		}
-//	},
+	togglewindow: function()
+	{
+		/* This function is for compatibility purpose here.
+		* It shows injected rating window in Safari < 5.1 instead of Popover.
+		* https://github.com/mywot/safari/issues/15
+		* Should be removed when nobody will use Safari < 5.1
+		* */
+		var rv = this.toggleframe("wot-rating-window-frame",
+					"content/ratingwindow_injected.html",
+					"border: 0 ! important; " +
+					"height: 100% ! important; " +
+					"left: 0px ! important; " +
+					"position: fixed ! important; " +
+					"top: 0px ! important; " +
+					"width: 100% ! important; " +
+					"z-index: 2147483647 ! important;");
+
+		if (!rv) {
+			wot.post("rating", "openscorecard");
+		}
+	},
 
 	onload: function()
 	{
@@ -86,9 +91,11 @@ wot.rating = {
 			return;
 		}
 
-//		wot.bind("message:rating:togglewindow", function(port, data) {
-//			wot.rating.togglewindow();
-//		});
+		if(!wot.use_popover) {
+			wot.bind("message:rating:togglewindow", function(port, data) {
+				wot.rating.togglewindow();
+			});
+		}
 
 		wot.bind("message:rating:toggle", function(port, data) {
 			wot.rating.toggle();
