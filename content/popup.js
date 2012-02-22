@@ -125,7 +125,7 @@ wot.popup = {
 					wot.popup.onmousemove(event);
 				}, false);
 		} catch (e) {
-			console.log("popup.add: failed with " + e + "\n");
+			console.log("popup.add: failed with " + e);
 		}
 	},
 
@@ -400,7 +400,9 @@ wot.popup = {
 									wot.popup.postfix);
 
 				if (target) {
-					wot.post("search", "openscorecard", { target: target });
+					wot.post("search", "openscorecard", { target: target,
+						ctx: wot.urls.contexts.popupviewsc });
+
 					wot.popup.hide(wot.popup.version, true);
 				}
 			}

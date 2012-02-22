@@ -422,7 +422,8 @@ $.extend(wot, { core: {
 			wot.bind("message:search:openscorecard", function(port, data) {
 				var wnd = safari.application.activeBrowserWindow;
 				var tab = wnd.openTab("foreground");
-				tab.url = wot.urls.scorecard + encodeURIComponent(data.target);
+				tab.url = wot.contextedurl(wot.urls.scorecard +
+					encodeURIComponent(data.target),data.ctx);
 			});
 
 			wot.bind("message:my:update", function(port, data) {

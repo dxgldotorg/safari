@@ -76,13 +76,13 @@ $.extend(wot, { ratingwindow: {
 
 	/* helpers */
 
-	navigate: function(url)
+	navigate: function(url, context)
 	{
 		try {
 			this.hide();
 
 			var newTab = safari.application.activeBrowserWindow.openTab();
-			newTab.url = url;
+			newTab.url = wot.contextedurl(url, context);
 
 		} catch (e) {
 			wot.log("ratingwindow.navigate: failed with " + e);
@@ -425,15 +425,17 @@ $.extend(wot, { ratingwindow: {
 
 		/* user interface event handlers */
 
+		var wurls = wot.urls;
+
 		$("#wot-header-logo").bind("click", function() {
-			wot.ratingwindow.navigate(wot.urls.base);
+			wot.ratingwindow.navigate(wurls.base, wurls.contexts.rwlogo);
 		});
 
 		$("#wot-header-link-settings").bind("click", function() {
-			wot.ratingwindow.navigate(wot.urls.settings);
+			wot.ratingwindow.navigate(wurls.settings, wurls.contexts.rwsettings);
 		});
 		$("#wot-header-link-guide").bind("click", function() {
-			wot.ratingwindow.navigate(wot.urls.settings + "/guide");
+			wot.ratingwindow.navigate(wurls.settings + "/guide", wurls.contexts.rwguide);
 		});
 
 		$("#wot-header-button").bind("click", function() {
@@ -447,9 +449,11 @@ $.extend(wot, { ratingwindow: {
 		$(".wot-rating-helplink, #wot-scorecard-comment").bind("click",
 			function(event) {
 				if (wot.ratingwindow.current.target) {
-					wot.ratingwindow.navigate(wot.urls.scorecard +
+					var url = wurls.scorecard +
 						encodeURIComponent(wot.ratingwindow.current.target) +
-						"/comment");
+						"/comment";
+
+					wot.ratingwindow.navigate(url, wurls.contexts.rwviewsc);
 				}
 				event.stopPropagation();
 			});
@@ -465,21 +469,22 @@ $.extend(wot, { ratingwindow: {
 		$("#wot-scorecard-content").bind("click", function() {
 			if (wot.ratingwindow.current.target) {
 				wot.ratingwindow.navigate(wot.urls.scorecard +
-					encodeURIComponent(wot.ratingwindow.current.target));
+					encodeURIComponent(wot.ratingwindow.current.target),
+						wurls.contexts.rwviewsc);
 			}
 		});
 
 		$(".wot-user-text").bind("click", function() {
 			var url = $(this).attr("url");
 			if (url) {
-				wot.ratingwindow.navigate(url);
+				wot.ratingwindow.navigate(url, wurls.contexts.rwprofile);
 			}
 		});
 
 		$("#wot-message").bind("click", function() {
 			var url = $("#wot-message-text").attr("url");
 			if (url) {
-				wot.ratingwindow.navigate(url);
+				wot.ratingwindow.navigate(url, wurls.contexts.rwmsg);
 			}
 		});
 
