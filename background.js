@@ -443,7 +443,7 @@ $.extend(wot, { core: {
 			wot.bind("message:rating:navigate", function(port, data) {
 				var wnd = safari.application.activeBrowserWindow;
 				var tab = wnd.openTab("foreground");
-				tab.url = data.url;
+				tab.url = wot.contextedurl(data.url, data.context);
 			});
 
 			wot.bind("message:rating:openscorecard", function(port, data) {
@@ -451,7 +451,8 @@ $.extend(wot, { core: {
 				var tab = wnd.activeTab;
 				var host = wot.url.gethostname(tab.url);
 				tab = wnd.openTab("foreground");
-				tab.url = wot.urls.scorecard + encodeURIComponent(host);
+				tab.url = wot.contextedurl(wot.contewot.urls.scorecard +
+					encodeURIComponent(host), data.context);
 			});
 
 			wot.bind("message:rating:update", function(port, data) {
