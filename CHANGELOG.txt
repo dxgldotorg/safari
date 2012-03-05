@@ -1,0 +1,62 @@
+CHANGELOG
+
+1.10 / unreleased
+
+  # 21, Default safari icon in extensions list (preferences)
+
+1.9 / 20120222
+
+  #4, Improvement: Use native Popover to show rating window
+  #12, small improvement: prevent text selection in popup, rating window and warning screen #12
+  #16, Updated russian locale
+  #13, All addon's links now have src=addon-* get-parameter to distinguish origin
+  #7, Bug fixed: Bug with geticon when new testimony is set
+
+1.8 / 20120206
+
+  #6, Fixed bug with mispositioning WOT popup in Gmail
+
+1.7 / 20120119
+
+  #5, fixed the bug "Donuts are shown even if page contains inclusions which are matched to search rules"
+
+1.6 / 20111213
+
+  #1, jQuery is upgraded to 1.7.1, some bugs fixed
+
+1.5 / 20111107
+
+  - Clarifies warning texts
+  - Fixes potential issues with the settings page
+
+1.4 / 20111020
+
+  - Improves performance on sites with a lot of frames or social sharing buttons
+  - Upgraded jQuery to 1.6.4
+
+1.3 / 20110714
+
+  - Fixes warning thresholds in the previous version
+  - Fixes the rating symbol shown on the web page in colorblind accessible mode
+  - Adds an option to the advanced settings to disable showing the rating on the page
+
+1.2 / 20110704
+
+  - Adds translations for ko-KR
+
+1.1 / 20110323
+
+  - Adds ratings to Facebook, Twitter, and shortened URLs.
+  - Updated the version number to match other add-ons with the same code base.
+
+0.4 / 20101204
+
+  - Fixed encoding of shared host names (on twitter.com, for example).
+  - Upgraded to jQuery 1.4.4
+
+0.3 / 20100712
+
+  - Fixed rating window and rating indicator issues on sites that use frames
+
+0.2 / 20100628
+  - First public release
