@@ -1,6 +1,6 @@
 /*
 	content/common.js
-	Copyright © 2009, 2010, 2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -110,13 +110,9 @@ wot.prefs = {
 	onload: function()
 	{
 		wot.addready("prefs", this, function() {
-			wot.log("common.js / prefs.ready() called");
-			wot.log('prefs pending');
-			wot.log(this);
 			for (var i in this.pending) {
 				return false;
 			}
-			wot.log('pref.onload will return true');
 			return true;
 		});
 

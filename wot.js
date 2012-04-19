@@ -440,6 +440,14 @@ var wot = {
 		return path + size + "_" + size + name + ".png";
 	},
 
+	is_rated: function(values)
+	{
+		return wot.components.some(function(item) {
+				var n = item.name;
+				return (values[n] && values[n].t >= 0);
+		});
+	},
+
 	contextedurl: function(url, context)
 	{
 		var newurl = url;

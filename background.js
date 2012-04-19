@@ -86,11 +86,7 @@ $.extend(wot, { core: {
 				if (result != "rx") {
 					if (this.unseenmessage()) {
 						result = "message_" + result;
-					} else if (result != "r0" &&
-								!wot.components.some(function(item) {
-									return (cached.value[item.name] &&
-											cached.value[item.name].t >= 0);
-								})) {
+					} else if (result != "r0" && !wot.is_rated(cached.value)) {
 						result = "new_" + result;
 					}
 				}
@@ -515,7 +511,7 @@ $.extend(wot, { core: {
 					if (e.target.identifier === "wot_button") {
 
 						var rw = wot.popover.contentWindow.wot.ratingwindow;
-						if(rw.state) {
+						if(rw && rw.state) {
 							wot.core.finishstate({state: rw.state});
 						}
 
