@@ -1,6 +1,6 @@
 /*
 	ratingframe.js
-	Copyright © 2010-2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2010 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -21,14 +21,19 @@
 $.extend(wot, { ratingframe: {
 	update: function(data, accessible) {
 		try {
-			$("#wot-reputation").attr("reputation",
+			var values = (data.cached && data.cached.value) ?
+												data.cached.value : {};
+			$("#wot-reputation")
+				.attr("reputation",
 				(data.cached.status == wot.cachestatus.ok) ?
 						wot.getlevel(wot.reputationlevels,
-							data.cached.value[0] ?
-							data.cached.value[0].r : -1).name : "")
-				.toggleClass("accessible", accessible);
+							values[0] ?
+							values[0].r : -1).name : "")
+				.toggleClass("accessible", accessible)
+				.toggleClass("unrated", !wot.is_rated(values));
+
 		} catch (e) {
-			console.log("ratingframe.update: failed with " + e + "\n");
+			wot.flog("ratingframe.update: failed with " + e);
 		}
 	},
 

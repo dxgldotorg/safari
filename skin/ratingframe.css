@@ -1,6 +1,6 @@
 /*
 	ratingframe.css
-	Copyright © 2010-2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2010 - 2012  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -22,14 +22,17 @@ body {
 	overflow: hidden;
 	padding: 10px;
 }
+
 #wot-reputation-bg {
-	background-color: #555;
+	background-color: white;
 	border-radius: 5px 5px;
+    border: #bdbdbd solid 2px;
 	display: block;
 	padding: 7px;
 	height: 28px;
 	width: 28px;
 }
+
 #wot-reputation {
 	background: url("../skin/fusion/28_28/default.png") top left no-repeat;
 	cursor: pointer;
@@ -37,47 +40,106 @@ body {
 	height: 28px;
 	width: 28px;
 }
+
 #wot-reputation[reputation="r0"] {
-	background: url("../skin/fusion/28_28/r0.png") top left no-repeat;
+	background-image: url("../skin/fusion/28_28/r0.png");
 }
+
 #wot-reputation[reputation="r1"] {
-	background: url("../skin/fusion/28_28/r1.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/r1.png");
 }
+
 #wot-reputation[reputation="r2"] {
-	background: url("../skin/fusion/28_28/r2.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/r2.png");
 }
+
 #wot-reputation[reputation="r3"] {
-	background: url("../skin/fusion/28_28/r3.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/r3.png");
 }
+
 #wot-reputation[reputation="r4"] {
-	background: url("../skin/fusion/28_28/r4.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/r4.png");
 }
+
 #wot-reputation[reputation="r5"] {
-	background: url("../skin/fusion/28_28/r5.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/r5.png");
 }
+
+#wot-reputation.unrated[reputation="r1"] {
+    background-image: url("../skin/fusion/28_28/r1_new.png");
+}
+
+#wot-reputation.unrated[reputation="r2"] {
+    background-image: url("../skin/fusion/28_28/r2_new.png");
+}
+
+#wot-reputation.unrated[reputation="r3"] {
+    background-image: url("../skin/fusion/28_28/r3_new.png");
+}
+
+#wot-reputation.unrated[reputation="r4"] {
+    background-image: url("../skin/fusion/28_28/r4_new.png");
+}
+
+#wot-reputation.unrated[reputation="r5"] {
+    background-image: url("../skin/fusion/28_28/r5_new.png");
+}
+
+
 #wot-reputation[reputation="rx"] {
-	background: url("../skin/fusion/28_28/rx.png") top left no-repeat;
+    background-image: url("../skin/fusion/28_28/rx.png");
 }
+
 #wot-reputation.accessible {
-	background: url("../skin/fusion/accessible/28_28/default.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/default.png");
 }
+
 #wot-reputation.accessible[reputation="r0"] {
-	background: url("../skin/fusion/accessible/28_28/r0.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r0.png");
 }
+
 #wot-reputation.accessible[reputation="r1"] {
-	background: url("../skin/fusion/accessible/28_28/r1.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r1.png");
 }
+
 #wot-reputation.accessible[reputation="r2"] {
-	background: url("../skin/fusion/accessible/28_28/r2.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r2.png");
 }
+
 #wot-reputation.accessible[reputation="r3"] {
-	background: url("../skin/fusion/accessible/28_28/r3.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r3.png");
 }
+
 #wot-reputation.accessible[reputation="r4"] {
-	background: url("../skin/fusion/accessible/28_28/r4.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r4.png");
 }
+
 #wot-reputation.accessible[reputation="r5"] {
-	background: url("../skin/fusion/accessible/28_28/r5.png") top left no-repeat;
-}#wot-reputation.accessible[reputation="rx"] {
-	background: url("../skin/fusion/28_28/rx.png") top left no-repeat;
+    background-image: url("../skin/fusion/accessible/28_28/r5.png");
+}
+
+/* unrated icon for accessible style */
+#wot-reputation.accessible.unrated[reputation="r1"] {
+    background-image: url("../skin/fusion/accessible/28_28/r1_new.png");
+}
+
+#wot-reputation.accessible.unrated[reputation="r2"] {
+    background-image: url("../skin/fusion/accessible/28_28/r2_new.png");
+}
+
+#wot-reputation.accessible.unrated[reputation="r3"] {
+    background-image: url("../skin/fusion/accessible/28_28/r3_new.png");
+}
+
+#wot-reputation.accessible.unrated[reputation="r4"] {
+    background-image: url("../skin/fusion/accessible/28_28/r4_new.png");
+}
+
+#wot-reputation.accessible.unrated[reputation="r5"] {
+    background-image: url("../skin/fusion/accessible/28_28/r5_new.png");
+}
+
+
+#wot-reputation.accessible[reputation="rx"] {
+    background-image: url("../skin/fusion/28_28/rx.png");
 }
