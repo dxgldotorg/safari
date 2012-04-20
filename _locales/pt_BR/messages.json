@@ -75,10 +75,10 @@
 		"message": "Minha classificação"
 	},
 	"ratingwindow_viewscorecard": {
-		"message": "Ver indicador de detalhes de classificação."
+		"message": "Ver indicador de detalhes de classificação"
 	},
 	"ratingwindow_addcomment": {
-		"message": "Adicionar seu comentário."
+		"message": "Adicionar seu comentário"
 	},
 	"ratingwindow_inpartnership": {
 		"message": "Em parceria com"
@@ -102,12 +102,12 @@
 		"message": "Ignorar aviso e ir ao site"
 	},
 	"warnings_reputation": {
-		"message": "Este site tem má reputação."
+		"message": "Este site tem má reputação"
 	},
 	"warnings_rating": {
-		"message": "Você deu a este site uma classificação<br/>ruim, o que gerou um aviso."
+		"message": "Você deu a este site uma classificação<br/>ruim, o que gerou um aviso"
 	},
 	"warnings_unknown": {
-		"message": "Este site tem classificação desconhecida."
+		"message": "Este site tem classificação desconhecida"
 	}
 }

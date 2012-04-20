@@ -75,10 +75,10 @@
 		"message": "自分の評価"
 	},
 	"ratingwindow_viewscorecard": {
-		"message": "スコアカードで格付けの詳細を見る。"
+		"message": "スコアカードで格付けの詳細を見る"
 	},
 	"ratingwindow_addcomment": {
-		"message": "コメントを追加してください。"
+		"message": "コメントを追加してください"
 	},
 	"ratingwindow_inpartnership": {
 		"message": "提携パートナー："
@@ -102,12 +102,12 @@
 		"message": "警告を無視してサイトにアクセスする"
 	},
 	"warnings_reputation": {
-		"message": "評価の低いサイトです。"
+		"message": "評価の低いサイトです"
 	},
 	"warnings_rating": {
-		"message": "このサイトに対するあなたの評価が低いために、<br/>警告が表示されました。"
+		"message": "このサイトに対するあなたの評価が低いために、<br/>警告が表示されました"
 	},
 	"warnings_unknown": {
-		"message": "評価が不明なサイトです。"
+		"message": "評価が不明なサイトです"
 	}
 }

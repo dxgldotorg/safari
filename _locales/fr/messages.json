@@ -75,10 +75,10 @@
 		"message": "Mon évaluation"
 	},
 	"ratingwindow_viewscorecard": {
-		"message": "Afficher le tableau de bord détaillé."
+		"message": "Afficher le tableau de bord détaillé"
 	},
 	"ratingwindow_addcomment": {
-		"message": "Ajouter votre commentaire."
+		"message": "Ajouter votre commentaire"
 	},
 	"ratingwindow_inpartnership": {
 		"message": "En partenariat avec"
@@ -102,12 +102,12 @@
 		"message": "Ignorer l'alerte et accéder au site"
 	},
 	"warnings_reputation": {
-		"message": "Ce site a mauvaise réputation."
+		"message": "Ce site a mauvaise réputation"
 	},
 	"warnings_rating": {
-		"message": "Vous avez attribué à ce site une mauvaise<br/>évaluation ayant déclenché une alerte."
+		"message": "Vous avez attribué à ce site une mauvaise<br/>évaluation ayant déclenché une alerte"
 	},
 	"warnings_unknown": {
-		"message": "Ce site présente une évaluation inconnue."
+		"message": "Ce site présente une évaluation inconnue"
 	}
 }

@@ -75,10 +75,10 @@
 		"message": "Min klassificering"
 	},
 	"ratingwindow_viewscorecard": {
-		"message": "Visa scorekort för klassificeringsdetaljer."
+		"message": "Visa scorekort för klassificeringsdetaljer"
 	},
 	"ratingwindow_addcomment": {
-		"message": "Lägg till en kommentar."
+		"message": "Lägg till en kommentar"
 	},
 	"ratingwindow_inpartnership": {
 		"message": "I partnerskap med"
@@ -102,12 +102,12 @@
 		"message": "Ignorera varningen och gå till webbplatsen"
 	},
 	"warnings_reputation": {
-		"message": "Den här webbplatsen har dåligt rykte."
+		"message": "Den här webbplatsen har dåligt rykte"
 	},
 	"warnings_rating": {
-		"message": "Du har gett webbplatsen klassificeringen Dålig,<br/>vilket gav upphov till en varning."
+		"message": "Du har gett webbplatsen klassificeringen Dålig,<br/>vilket gav upphov till en varning"
 	},
 	"warnings_unknown": {
-		"message": "Webbplatsen har en okänd klassificering."
+		"message": "Webbplatsen har en okänd klassificering"
 	}
 }
