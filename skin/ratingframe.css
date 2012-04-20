@@ -29,8 +29,8 @@ body {
     border: #bdbdbd solid 2px;
 	display: block;
 	padding: 7px;
-	height: 28px;
-	width: 28px;
+	min-height: 28px;
+	min-width: 28px;
 }
 
 #wot-reputation {
@@ -39,6 +39,11 @@ body {
 	display: block;
 	height: 28px;
 	width: 28px;
+}
+
+#wot-reputation.unrated {
+    height: 30px;
+    width: 32px;
 }
 
 #wot-reputation[reputation="r0"] {
