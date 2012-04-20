@@ -71,7 +71,6 @@ $.extend(wot, { ratingwindow: {
 	finishstate: function()
 	{
 		this.bg_page.wot.core.finishstate({ state: this.state });
-		//wot.post("rating", "finishstate", { state: this.state });
 	},
 
 	/* helpers */

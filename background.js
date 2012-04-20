@@ -190,9 +190,19 @@ $.extend(wot, { core: {
 
 	updatetabwarning: function(tab, data)
 	{
+		var cached = data.cached, warned = null;
 		try {
-			if (data.cached.status != wot.cachestatus.ok ||
-					data.cached.flags.warned) {
+			/* Check if "warned" flag is expired */
+			if(cached.flags && cached.flags.warned) {
+				warned = cached.flags.warned;
+
+				var ctime = (new Date()).getTime();
+				if(cached.flags.warned_expire && (ctime > cached.flags.warned_expire)) {
+					warned = false;
+				}
+			}
+
+			if (cached.status != wot.cachestatus.ok || warned) {
 				return; /* don't change the current status */
 			}
 			
@@ -215,7 +225,7 @@ $.extend(wot, { core: {
 				settings[item] = wot.prefs.get(item);
 			});
 
-			var type = wot.getwarningtype(data.cached.value, settings);
+			var type = wot.getwarningtype(cached.value, settings);
 
 			if (type && type.type == wot.warningtypes.overlay) {
 				wot.post("warning", "show", {
@@ -228,7 +238,6 @@ $.extend(wot, { core: {
 			wot.flog("core.updatetabwarning: failed with " + e);
 		}
 	},
-
 
 	setusermessage: function(data)
 	{
@@ -363,7 +372,12 @@ $.extend(wot, { core: {
 		/* check for rating changes */
 		if (wot.cache.cacheratingstate(data.state.target,
 			data.state)) {
-			/* submit new ratings */
+
+			// Remember time when testimony were set
+			var warned_expire = (new Date()).getTime() + wot.expire_warned_after;
+			wot.cache.setflags(data.state.target, {warned: true,
+				warned_expire: warned_expire });
+
 			var params = {};
 
 			wot.components.forEach(function(item) {
@@ -373,6 +387,7 @@ $.extend(wot, { core: {
 				}
 			});
 
+			/* submit new ratings */
 			wot.api.submit(data.state.target, params);
 		}
 	},
