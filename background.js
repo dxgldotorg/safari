@@ -525,9 +525,11 @@ $.extend(wot, { core: {
 				safari.application.addEventListener("validate", function(e) {
 					if (e.target.identifier === "wot_button") {
 
-						var rw = wot.popover.contentWindow.wot.ratingwindow;
-						if(rw && rw.state) {
-							wot.core.finishstate({state: rw.state});
+						if(wot.popover) {
+							var rw = wot.popover.contentWindow.wot.ratingwindow;
+							if(rw && rw.state) {
+								wot.core.finishstate({state: rw.state});
+							}
 						}
 
 						wot.core.update();
