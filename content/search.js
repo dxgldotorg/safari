@@ -233,19 +233,63 @@ wot.search = {
 		}
 	},
 
-	addrating: function(target, link, frame)
+	is_ninja: function(rule)
+	{
+		return rule.ninja && wot.search.settings.ninja_donuts;
+	},
+
+	addrating: function(target, link, frame, rule)
 	{
 		try {
+			// ninja - is experimental feature to make donuts on the SERP hidden
+			var is_ninja = wot.search.is_ninja(rule);
 			var elem = frame.document.createElement("div");
 
 			if (elem) {
+
+				var link_parent = link.parentNode;
+
 				elem.setAttribute(this.getattrname("target"), target);
+
+				if(is_ninja) elem.setAttribute("class", "invisible");
 
 				elem.setAttribute("style",
 					"display: inline-block; " +
 					"cursor: pointer; " +
 					"width: 16px; " +
 					"height: 16px;");
+
+				if(is_ninja) {
+
+					var ninja_timer = null,
+						visibility = null; // class name to control donuts' visibility
+
+					// clojure
+					function set_visibility() {
+						elem.setAttribute("class", visibility);
+					}
+
+					function do_ninja(event) {
+						// It needs to be called as clojure to access "elem"
+
+						if (ninja_timer) clearTimeout(ninja_timer);
+
+						if(event.type == "mouseout") {
+							visibility = "invisible";
+							// delay, to prevent premature hiding causes by bubled events from element's children
+							ninja_timer = setTimeout(set_visibility, 100);
+							return;
+						} else {
+							visibility = "visible";
+						}
+
+						set_visibility();
+					}
+
+					// use parent to avoid hiding donut when cursor moves to it but goes out of the link
+					link_parent.addEventListener("mouseover", do_ninja, false);
+					link_parent.addEventListener("mouseout", do_ninja, false);
+				}
 
 				elem.addEventListener("click", this.onclickrating, false);
 
@@ -386,7 +430,7 @@ wot.search = {
 				link.setAttribute(this.getattrname("processed"), true);
 
 				this.processrule(rule, link, function(elem, target) {
-					wot.search.addrating(target, elem, frame);
+					wot.search.addrating(target, elem, frame, rule);
 					targets.push(target);
 				});
 			}
@@ -413,7 +457,8 @@ wot.search = {
 			"search_level",
 			"search_type",
 			"show_search_popup",
-			"use_search_level"
+			"use_search_level",
+			"ninja_donuts"
 		];
 
 		wot.components.forEach(function(item) {
@@ -438,6 +483,23 @@ wot.search = {
 		if (this.matchrule(data.rule, window)) {
 			this.processframe(data.rule, window, function(targets) {
 				/* add common styles */
+
+				if(wot.search.is_ninja(data.rule)) {
+					/* Visibility and CSS transitions for Ninja-donuts */
+					var ninja_style = "" +
+						"div[wotsearchtarget] {" +
+						"-webkit-transition: opacity 0.1s cubic-bezier(0.25,0.1,0.25,1) 0.5s;" +
+						"} " +
+						"div[wotsearchtarget].visible {" +
+						"-webkit-transition: opacity 0s;" +
+						"opacity: 1.0;" +
+						"} " +
+						"div[wotsearchtarget].invisible {" +
+						"opacity: 0.0;" +
+						"}";
+					wot.search.addstyle(ninja_style, window, "wotninja");
+				}
+
 				if (data.rule.prestyle) {
 					wot.search.addstyle(
 						wot.search.formatcss(data.rule.prestyle), window,
