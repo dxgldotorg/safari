@@ -96,7 +96,7 @@
 		"message": "查看评级详情和评论"
 	},
 	"warnings_ratesite": {
-		"message": "此网站是安全的 - 我想对其进行评级"
+		"message": "此网站是安全的 - <a>我想对其进行评级</a>"
 	},
 	"warnings_gotosite": {
 		"message": "忽略警告并进入该网站"
@@ -109,5 +109,20 @@
 	},
 	"warnings_unknown": {
 		"message": "此网站的评级未知"
+	},
+	"warnings_warning": {
+		"message": "警告!"
+	},
+	"warnings_goto": {
+		"message": ""
+	},
+	"warnings_leave": {
+		"message": ""
+	},
+	"warnings_back": {
+		"message": ""
+	},
+	"contextmenu_open_scorecard": {
+		"message": "Open WOT scorecard"
 	}
 }

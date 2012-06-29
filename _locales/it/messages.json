@@ -96,7 +96,7 @@
 		"message": "Visualizza dettagli valutazione e commenti"
 	},
 	"warnings_ratesite": {
-		"message": "Questo sito è sicuro - Do valutazione"
+		"message": "Questo sito è sicuro - <a>Do valutazione</a>"
 	},
 	"warnings_gotosite": {
 		"message": "Ignora avviso e vai al sito"
@@ -109,5 +109,20 @@
 	},
 	"warnings_unknown": {
 		"message": "Questo sito ha una valutazione sconosciuta"
+	},
+	"warnings_warning": {
+		"message": "Avviso!"
+	},
+	"warnings_goto": {
+		"message": "Vai al sito"
+	},
+	"warnings_leave": {
+		"message": "Lascia il sito"
+	},
+	"warnings_back": {
+		"message": "Torna indietro"
+	},
+	"contextmenu_open_scorecard": {
+		"message": "Open WOT scorecard"
 	}
 }

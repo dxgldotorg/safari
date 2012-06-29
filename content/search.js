@@ -303,7 +303,7 @@ wot.search = {
 
 			var r = (def_comp && def_comp.r != null) ? def_comp.r : -1;
 
-			if (this.settings.search_type == wot.searchtypes.trustworthiness) {
+			if (wot.search.settings.search_type == wot.searchtypes.trustworthiness) {
 				return r;
 			}
 

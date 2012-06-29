@@ -96,7 +96,7 @@
 		"message": "檢視評等詳細內容與評語"
 	},
 	"warnings_ratesite": {
-		"message": "這個網站是安全的 - 我要評等"
+		"message": "這個網站是安全的 - <a>我要評等</a>"
 	},
 	"warnings_gotosite": {
 		"message": "忽略警告，前往網站"
@@ -109,5 +109,20 @@
 	},
 	"warnings_unknown": {
 		"message": "這個網站的評等不詳"
+	},
+	"warnings_warning": {
+		"message": "警告!"
+	},
+	"warnings_goto": {
+		"message": ""
+	},
+	"warnings_leave": {
+		"message": ""
+	},
+	"warnings_back": {
+		"message": ""
+	},
+	"contextmenu_open_scorecard": {
+		"message": "Open WOT scorecard"
 	}
 }

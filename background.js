@@ -413,6 +413,12 @@ $.extend(wot, { core: {
 				});
 			});
 
+			wot.bind("message:tab:close", function(port, data) {
+				if(port.tab) {
+					port.tab.close();
+				}
+			});
+
 			wot.bind("message:search:get", function(port, data) {
 				wot.core.loadratings(data.targets, function(hosts) {
 					var ratings = {};
@@ -559,7 +565,7 @@ $.extend(wot, { core: {
 				}, false);
 			}
 
-			wot.listen([ "search", "my", "update", "rating" ]);
+			wot.listen([ "search", "my", "update", "rating", "tab" ]);
 
 			if (wot.debug) {
 				wot.prefs.clear("update:state");

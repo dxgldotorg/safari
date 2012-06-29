@@ -96,7 +96,7 @@
 		"message": "Exibir detalhes de classificação e comentários"
 	},
 	"warnings_ratesite": {
-		"message": "Este site é seguro - quero classificá-lo"
+		"message": "Este site é seguro - quero <a>classificá-lo</a>"
 	},
 	"warnings_gotosite": {
 		"message": "Ignorar aviso e ir ao site"
@@ -109,5 +109,20 @@
 	},
 	"warnings_unknown": {
 		"message": "Este site tem classificação desconhecida"
+	},
+	"warnings_warning": {
+		"message": "Aviso!"
+	},
+	"warnings_goto": {
+		"message": "Ir ao sítio"
+	},
+	"warnings_leave": {
+		"message": "Sair do sítio"
+	},
+	"warnings_back": {
+		"message": "Voltar"
+	},
+	"contextmenu_open_scorecard": {
+		"message": "Abrir o WOT Scorecard"
 	}
 }

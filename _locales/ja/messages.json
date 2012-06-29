@@ -96,7 +96,7 @@
 		"message": "詳しい評価とコメントを見る"
 	},
 	"warnings_ratesite": {
-		"message": "このサイトは安全です - 評価を行います"
+		"message": "このサイトは安全です - <a>評価を行います</a>"
 	},
 	"warnings_gotosite": {
 		"message": "警告を無視してサイトにアクセスする"
@@ -109,5 +109,20 @@
 	},
 	"warnings_unknown": {
 		"message": "評価が不明なサイトです"
+	},
+	"warnings_warning": {
+		"message": "警告!"
+	},
+	"warnings_goto": {
+		"message": "このサイトを開く"
+	},
+	"warnings_leave": {
+		"message": "このサイトを閉じる"
+	},
+	"warnings_back": {
+		"message": "戻る"
+	},
+	"contextmenu_open_scorecard": {
+		"message": "Open WOT scorecard"
 	}
 }
