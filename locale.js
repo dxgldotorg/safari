@@ -33,7 +33,8 @@ $.extend(wot, { locale: {
 	  	"pt_BR": "pt_BR",
 	  	"ru": "ru",
 	  	"sv": "sv",
-	  	"zh_CN": "zh_CN",
+		"tr": "tr",
+		"zh_CN": "zh_CN",
 	  	"zh_TW": "zh_TW"
 	},
 
@@ -57,8 +58,6 @@ $.extend(wot, { locale: {
 	setlocale: function()
 	{
 		var lang = (window.navigator.language || "en").replace(/-/g, "_");
-
-		lang = "ru"; // TODO: remove this!
 
 		if (!this.languages[lang]) {
 			lang = lang.replace(/_.*$/, "");
