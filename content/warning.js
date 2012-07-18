@@ -18,48 +18,53 @@
 	along with WOT. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-var WOT_WARNING_HTML = "<div id='wotcontainer' class='wotcontainer {CLASS} {ACCESSIBLE}'>" +
-	"<div class='wot-logo'></div>" +
-	"<div class='wot-warning'>{WARNING}</div>" +
-	"<div class='wot-title'>{TITLE}</div>" +
-	"<div class='wot-desc'>{DESC}</div>" +
-	"<div class='wot-openscorecard-wrap'>" +
-	"<span id='wotinfobutton' class='wot-openscorecard wot-link'>{INFO}</span>" +
-	"</div>" +
-	"<div id='wot-ratings'>";
-
-wot.components.forEach(function(item) {
-
-	var c = item.name,
-		S_COMPNAME = "RATINGDESC" + c,
-		S_RATING = "RATING" + c,
-		S_RATING_EXPL = "RATINGEXPL" + c;
-
-	WOT_WARNING_HTML += "" +
-		"<div class='wot-component'>" +
-		"<div class='wot-comp-name'>{" + S_COMPNAME + "}</div>" +
-		"<div class='wot-comp-level' r='{" + S_RATING + "}'>{" + S_RATING_EXPL + "}</div>" +
-		"<div class='wot-comp-icon' r='{" + S_RATING + "}'></div>" +
-		"</div>";
-
-});
-
-WOT_WARNING_HTML +=
-	"</div>" +
-		"<div class='wot-rateit-wrap'>" +
-		"<span>{RATETEXT}</span>" +
-		"</div>" +
-		"<div class='wot-buttons'>" +
-		"<div id='wot-btn-hide' class='wot-button'>{GOTOSITE}</div>" +
-		"<div id='wot-btn-leave' class='wot-button'>{LEAVESITE}</div>" +
-		"</div>" +
-		"</div>";
-
-
 wot.warning = {
 	minheight: 600,
 	exit_mode: "back",
+
+	make_warning: function()
+	{
+		var wot_warning = "<div id='wotcontainer' class='wotcontainer {CLASS} {ACCESSIBLE}'>" +
+			"<div class='wot-logo'></div>" +
+			"<div class='wot-warning'>{WARNING}</div>" +
+			"<div class='wot-title'>{TITLE}</div>" +
+			"<div class='wot-desc'>{DESC}</div>" +
+			"<div class='wot-openscorecard-wrap'>" +
+				"<span id='wotinfobutton' class='wot-openscorecard wot-link'>{INFO}</span>" +
+			"</div>" +
+			"<div id='wot-ratings'>";
+
+		wot.components.forEach(function(item) {
+
+			var c = item.name,
+				S_COMPNAME = "RATINGDESC" + c,
+				S_RATING = "RATING" + c,
+				S_RATING_EXPL = "RATINGEXPL" + c;
+
+			if(wot.warning.settings["show_application_" + c]) {
+				wot_warning += "" +
+					"<div class='wot-component'>" +
+						"<div class='wot-comp-name'>{" + S_COMPNAME + "}</div>" +
+						"<div class='wot-comp-level' r='{" + S_RATING + "}'>{" + S_RATING_EXPL + "}</div>" +
+						"<div class='wot-comp-icon' r='{" + S_RATING + "}'></div>" +
+					"</div>";
+			}
+
+		});
+
+		wot_warning +=
+			"</div>" +
+				"<div class='wot-rateit-wrap'>" +
+					"<span>{RATETEXT}</span>" +
+				"</div>" +
+				"<div class='wot-buttons'>" +
+					"<div id='wot-btn-hide' class='wot-button'>{GOTOSITE}</div>" +
+					"<div id='wot-btn-leave' class='wot-button'>{LEAVESITE}</div>" +
+				"</div>" +
+			"</div>";
+
+		return wot_warning;
+	},
 
 	getheight: function()
 	{
@@ -270,6 +275,15 @@ wot.warning = {
 
 			warning.setAttribute("id", "wotwarning");
 
+			// For child safety we'll set opaque background on adult sites
+			var data_4 = data.cached.value[4];
+			if (data_4 && data_4.r != undefined && data_4.c != undefined ) {
+				if(data_4.r <= this.settings.warning_level_4 && data_4.c >= this.settings.min_confidence_level) {
+					this.settings.warning_opacity = 1;
+				}
+			}
+
+			// set opacity
 			if (this.settings.warning_opacity &&
 					Number(this.settings.warning_opacity) >= 0 &&
 					Number(this.settings.warning_opacity) <= 1) {
@@ -282,7 +296,7 @@ wot.warning = {
 			warning = body[0].appendChild(warning);
 			wrapper = body[0].appendChild(wrapper);
 
-			wrapper.innerHTML = this.processhtml(WOT_WARNING_HTML, replaces);
+			wrapper.innerHTML = this.processhtml(this.make_warning(), replaces);
 			this.hideobjects(true);
 
 			document.getElementById("wotinfobutton").addEventListener("click",
@@ -291,17 +305,10 @@ wot.warning = {
 					window.location.href = wot.contextedurl(url, wot.urls.contexts.warnviewsc);
 				}, false);
 
-			document.getElementById("wotrate-link").addEventListener("click",
-					function() {
-						var url = wot.urls.scorecard +
-							encodeURIComponent(data.target) + "/rate";
-						window.location.href = wot.contextedurl(url, wot.urls.contexts.warnrate);
-					}, false);
-
 			document.getElementById("wot-btn-leave").addEventListener("click",function(e){
 				if(wot.warning.exit_mode == "leave") {
 					// close tab
-					wot.post("tab", "close", {});
+					wot.post("tab","close", {});
 				} else {
 					var e_beforeunload = window.onbeforeunload;
 					var back_timer = null;
@@ -312,11 +319,12 @@ wot.warning = {
 						if(e_beforeunload) e_beforeunload(window);
 					};
 					window.history.back();
-					back_timer = window.setTimeout(function(){
+
+					back_timer = window.setTimeout(function() {
 						// this is a trick: we don't know if there is a back-step possible if history.length>1,
 						// so we simply wait for a short time, and if we are still on a page, then "back" is impossible and
-						// we should close the tab
-						wot.post("tab", "close", {});
+						// we should go to blank page
+						wot.post("tab","close", {});
 					}, 100);
 				}
 			});
@@ -330,6 +338,14 @@ wot.warning = {
 						flags: { warned: true, warned_expire: null }
 					});
 				}, false);
+
+		document.getElementById("wotrate-link").addEventListener("click",
+			function() {
+				var url = wot.urls.scorecard +
+					encodeURIComponent(data.target) + "/rate";
+				window.location.href = wot.contextedurl(url, wot.urls.contexts.warnrate);
+			}, false);
+
 		} catch (e) {
 			console.log("warning.add: failed with " + e);
 		}
