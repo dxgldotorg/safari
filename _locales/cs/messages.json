@@ -5,6 +5,9 @@
 	"lang": {
 		"message": "cs-CZ"
 	},
+	"ext_description": {
+		"message": "Nástroj WOT vám ukáže, kterým stránkám můžete důvěřovat na základě zkušeností miliónů uživatelů po celém světě. Nástroj WOT je rychlý, snadno se používá a je zcela zdarma."
+	},
 	"components_0": {
 		"message": "Důvěryhodnost"
 	},
@@ -114,13 +117,13 @@
 		"message": "Varování!"
 	},
 	"warnings_goto": {
-		"message": ""
+		"message": "Pokračovat"
 	},
 	"warnings_leave": {
-		"message": ""
+		"message": "Opustit stránku"
 	},
 	"warnings_back": {
-		"message": ""
+		"message": "Vrátit se zpět"
 	},
 	"contextmenu_open_scorecard": {
 		"message": "Open WOT scorecard"
