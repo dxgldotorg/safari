@@ -303,7 +303,7 @@ $.extend(wot, { ratingwindow: {
 	resize_popover: function ()
 	{
 		var popover = this.bg_page.wot.popover;
-		popover.height = 10 + $("body").outerHeight();
+		popover.height = $("body").outerHeight();
 	},
 
 	update: function(data)

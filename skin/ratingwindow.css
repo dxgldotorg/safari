@@ -20,7 +20,8 @@
 
 body {
 	overflow: hidden;
-	padding: 0px;
+	padding: 0;
+    margin: 0;
 	cursor: default;
 	-webkit-user-select: none;
 }
@@ -28,9 +29,8 @@ body {
 #wot-ratingwindow {
 	display: block;
 	background-color: white;
-	border: 0px solid #eee;
-	border-radius: 3px 3px;
-	padding: 1px;
+    background-image: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, #fff 3%, #fff 97%, rgba(255,255,255,0) 100%);
+	padding: 10px;
 	width: 319px;
 }
 #wot-elements {
