@@ -355,7 +355,6 @@ $.extend(wot, { core: {
 				tbi.popover = wot.popover;
 			}
 		}
-
 	},
 
 	finishstate: function(data)
@@ -531,7 +530,7 @@ $.extend(wot, { core: {
 				safari.application.addEventListener("validate", function(e) {
 					if (e.target.identifier === "wot_button") {
 
-						if(wot.popover) {
+						if(wot.popover && wot.popover.contentWindow && wot.popover.contentWindow.wot) {
 							var rw = wot.popover.contentWindow.wot.ratingwindow;
 							if(rw && rw.state) {
 								wot.core.finishstate({state: rw.state});
