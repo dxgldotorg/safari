@@ -1,6 +1,6 @@
 /*
 	locale.js
-	Copyright © 2009  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2013  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -35,7 +35,9 @@ $.extend(wot, { locale: {
 	  	"sv": "sv",
 		"tr": "tr",
 		"zh_CN": "zh_CN",
-	  	"zh_TW": "zh_TW"
+	  	"zh_TW": "zh_TW",
+		"uk": "uk",
+		"ko": "ko"
 	},
 
 	loadlocale: function(ondone)
