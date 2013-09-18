@@ -937,7 +937,8 @@ $.extend(wot, { ratingwindow: {
         $("#wt-learnmore-link").click(function (){
             var time_before_click = Math.round(wot.time_since(wot.ratingwindow.opened_time));
             wot.ga.fire_event(wot.ga.categories.WT, wot.ga.actions.WT_RW_LEARN, String(time_before_click));
-            bg.wot.core.open_mywot(wot.urls.tour_rw, wot.urls.contexts.wt_rw_lm);
+            _rw.navigate(wot.urls.tour_rw, wot.urls.contexts.wt_rw_lm);
+            _rw.reveal_ratingwindow(true);  // hide welcome tip
         });
 
 		var tts_wtip =  (first_opening || wot.firstrunupdate == _rw.UPDATE_ROUND) &&
@@ -1008,6 +1009,9 @@ $.extend(wot, { ratingwindow: {
         });
     },
 
+    track_pageview: function () {
+        wot.ga.track_pageview("/ratingwindow.html");
+    },
 
     on_comment_button: function (e) {
         var _rw = wot.ratingwindow;
@@ -1986,14 +1990,3 @@ $(document).ready(function() {
 		wot.ratingwindow.onload();
 	});
 });
-
-
-//		$("#wot-ratingwindow").bind("click", function(e) {
-//			event.stopPropagation();
-//		});
-//
-//		$("body").bind("click", function(e) {
-//			wot.ratingwindow.hide();
-//		});
-//
-//		wot.post("update", "status");

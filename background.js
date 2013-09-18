@@ -34,6 +34,8 @@ $.extend(wot, { core: {
         height: 416,
         width: 580
     },
+    watchdog_timer: null,
+    watchdog_interval: 5 * 1000,   // 5 seconds
 
 	loadratings: function(hosts, onupdate)
 	{
@@ -59,6 +61,11 @@ $.extend(wot, { core: {
 			console.error("core.update: failed with " + e);
 		}
 	},
+
+    get_current_target: function () {
+        var tab = safari.application.activeBrowserWindow.activeTab;
+        return tab ? wot.url.gethostname(tab.url) : null;
+    },
 
 	updatetab: function(tab, update_rw)
 	{
@@ -198,11 +205,11 @@ $.extend(wot, { core: {
 				}, tab);
 
 			// also, call ratingwindow.update()
-			if(update_rw && wot.popover && wot.popover.contentWindow
-				&& wot.popover.contentWindow.wot) {
+			if(wot.popover && wot.popover.contentWindow && wot.popover.contentWindow.wot) {
 				var ratingwindow = wot.popover.contentWindow.wot.ratingwindow;
+				if(!ratingwindow) return;
 
-				if(ratingwindow) {
+                if (update_rw) {    // full update of Rating Window only if asked
 					ratingwindow.usercontent = usercontent;
 					ratingwindow.update(data);
 				}
@@ -353,6 +360,8 @@ $.extend(wot, { core: {
         try {
             var w_key = wot.prefs.get("witness_key"),
                 user_level = wot.prefs.get("status_level");
+
+            if (!w_key) return false;   // no witness key = can't know the user level
 
             if (!user_level && level == null) return true;
             var h = wot.crypto.bintohex(wot.crypto.sha1.hmacsha1hex(w_key, "level="+level)); // encrypt the string by user's key
@@ -540,6 +549,33 @@ $.extend(wot, { core: {
         }
 	},
 
+    get_ratingwindow: function () {
+        if (wot.popover && wot.popover.contentWindow) {
+            return wot.popover.contentWindow.wot.ratingwindow;
+        } else {
+            return null;
+        }
+    },
+
+    set_watchdog: function (no_reset) {
+        if (wot.core.watchdog_timer) {
+            if (!no_reset) {
+                window.clearInterval(wot.core.watchdog_timer);
+                wot.core.watchdog_timer = null;
+            }
+        } else if (no_reset) {
+            wot.core.watchdog_timer = window.setInterval(wot.core.ratingwindow_watchdog, wot.core.watchdog_interval);
+        }
+    },
+
+    ratingwindow_watchdog: function () {
+        if (wot.popover && !wot.popover.visible) {  // if RW is not visible any more
+            wot.core.set_watchdog(false); // reset the watchdog
+            var rw = wot.core.get_ratingwindow();
+            rw.finishstate(true);
+        }
+    },
+
 	onload: function()
 	{
 		try {
@@ -659,6 +695,24 @@ $.extend(wot, { core: {
 					}
 					});
 
+                safari.application.addEventListener("popover", function(e) {
+                    if (e.target.identifier == "wot_ratewindow") {
+                        var rw = e.target.contentWindow.wot.ratingwindow;
+
+                        var target = wot.core.get_current_target(),
+                            data = {
+                            target: target,
+                            decodedtarget: wot.url.decodehostname(target),
+                            cached: wot.cache.get(target) || { value: {} }
+                        };
+
+                        rw.update(data);    // update RW when user opens it
+                        wot.core.set_watchdog(true);    // start watchdog to catch the moment when RW is closed
+                        rw.track_pageview();
+                    }
+
+                }, true);
+
 				// Instantiate Popover and attach it to all windows-wot-toolbars
 				safari.extension.popovers.forEach(function(item) {
 					if(item.identifier == "wot_ratewindow") {
@@ -668,7 +722,7 @@ $.extend(wot, { core: {
 
 				if(!wot.popover) {
 					wot.popover = safari.extension.createPopover("wot_ratewindow",
-						safari.extension.baseURI+"content/ratingwindow.html", wot.core.popover.width, wot.core.popover.height);
+						safari.extension.baseURI+"ratingwindow.html", wot.core.popover.width, wot.core.popover.height);
 				}
 
 				this.attach_popover();
@@ -685,7 +739,7 @@ $.extend(wot, { core: {
 				safari.application.addEventListener("validate", function(e) {
                     // when tab is switched, for example
 					if (e.target.identifier === "wot_button") {
-						wot.core.update(true);
+						wot.core.update(false);
 					}
 				}, false);
 			} else {

@@ -132,6 +132,25 @@ $.extend(wot, { ga: {
 		}
 	},
 
+    track_pageview: function (url) {
+        if (wot.ga.disable) return;
+
+        url = url ? url : "/";
+
+        try {
+            if (wot.ga.init_tracker()) {
+                wot.ga._tracker._trackPageview(url);
+            } else {
+                // backup option, if AsyncTracker still isn't inited
+                _gaq.push(['_trackPageview', url]);
+            }
+        } catch (e) {
+            // silence...
+            //console.log("Error in wot.ga.fire_event(). Msg: ", e);
+        }
+
+    },
+
 	post_init: function() {
 		// Finalize setting up GA environment after wot.core is initialized fully
 
