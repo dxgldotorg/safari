@@ -21,7 +21,7 @@
 wot.locale = {
 	onload: function()
 	{
-		wot.addready("locale", this);
+		wot.addready("locale", wot.locale);
 
 		wot.bind("message:locale:put", function(port, data) {
 			wot.alllocales[data.language] = data.locale || {};

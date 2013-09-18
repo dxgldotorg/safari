@@ -21,7 +21,19 @@
 $.extend(wot, { core: {
 	usermessage: {},
 	usercontent: [],
+    activity_score: 0,
+    badge_status: null,
+    first_run: false,       // sesion variable, to know if this launch is the first after installation
+    launch_time: null,      // time when current session was started
 	lastshown: {},
+    badge: {
+        type: null,
+        text: ""
+    },
+    popover: {
+        height: 416,
+        width: 580
+    },
 
 	loadratings: function(hosts, onupdate)
 	{
@@ -39,16 +51,16 @@ $.extend(wot, { core: {
 		return false;
 	},
 
-	update: function()
+	update: function(update_rw)
 	{
 		try {
-			wot.core.updatetab(safari.application.activeBrowserWindow.activeTab);
+			wot.core.updatetab(safari.application.activeBrowserWindow.activeTab, update_rw);
 		} catch (e) {
-			console.log("core.update: failed with " + e);
+			console.error("core.update: failed with " + e);
 		}
 	},
 
-	updatetab: function(tab)
+	updatetab: function(tab, update_rw)
 	{
 		wot.log("core.updatetab: " + tab.url);
 
@@ -58,10 +70,10 @@ $.extend(wot, { core: {
 					target: hosts[0],
 					decodedtarget: wot.url.decodehostname(hosts[0]),
 					cached: wot.cache.get(hosts[0]) || { value: {} }
-				});
+				}, update_rw);
 			});
 		} else {
-			wot.core.updatetabstate(tab, { status: "notready", cached: {} });
+			wot.core.updatetabstate(tab, { status: "notready", cached: {} }, update_rw);
 		}
 	},
 
@@ -100,7 +112,7 @@ $.extend(wot, { core: {
 			
 			return "default";
 		} catch (e) {
-			console.log("core.geticon: failed with " + e);
+			console.error("core.geticon: failed with " + e);
 		}
 
 		return "error";
@@ -147,7 +159,24 @@ $.extend(wot, { core: {
 		}
 	},
 
-	updatetabstate: function(tab, data)
+    update_ratingwindow_comment: function () {
+        if(wot.popover && wot.popover.contentWindow && wot.popover.contentWindow.wot) {
+            try {
+                var rw = wot.popover.contentWindow.wot.ratingwindow,
+                    tab = safari.application.activeBrowserWindow.activeTab;
+                var target = wot.url.gethostname(tab.url),
+                    cached = wot.cache.get(target);
+
+                // get locally stored comment if exists
+                var local_comment = wot.keeper.get_comment(target);
+                rw.update_comment(cached, local_comment, wot.cache.captcha_required);
+            } catch (e) {
+                console.error("core.update_ratingwindow_comment() failed with " + e);
+            }
+        }
+    },
+
+	updatetabstate: function(tab, data, update_rw)
 	{
 		try {
 			if (tab == tab.browserWindow.activeTab) {
@@ -169,7 +198,7 @@ $.extend(wot, { core: {
 				}, tab);
 
 			// also, call ratingwindow.update()
-			if(wot.popover && wot.popover.contentWindow
+			if(update_rw && wot.popover && wot.popover.contentWindow
 				&& wot.popover.contentWindow.wot) {
 				var ratingwindow = wot.popover.contentWindow.wot.ratingwindow;
 
@@ -205,7 +234,8 @@ $.extend(wot, { core: {
 			var prefs = [
 				"accessible",
 				"min_confidence_level",
-				"warning_opacity"
+				"warning_opacity",
+                "update:state"
 			];
 
 			wot.components.forEach(function(item) {
@@ -319,6 +349,21 @@ $.extend(wot, { core: {
 		}
 	},
 
+    is_level: function (level) {
+        try {
+            var w_key = wot.prefs.get("witness_key"),
+                user_level = wot.prefs.get("status_level");
+
+            if (!user_level && level == null) return true;
+            var h = wot.crypto.bintohex(wot.crypto.sha1.hmacsha1hex(w_key, "level="+level)); // encrypt the string by user's key
+            return (user_level == h);
+
+        } catch (e) {
+            console.error("wot.core.is_level failed", e);
+            return false;   // in case of errors it is safer to assume that user is not registered yet
+        }
+    },
+
 	processrules: function(url, onmatch)
 	{
 		onmatch = onmatch || function() {};
@@ -357,34 +402,142 @@ $.extend(wot, { core: {
 		}
 	},
 
-	finishstate: function(data)
+	finishstate: function(unload, data)
 	{
-		/* message was shown */
-		if (wot.core.unseenmessage()) {
-			wot.prefs.set("last_message", wot.core.usermessage.id);
-		}
+//        console.log("core.finishstate()", arguments);
+        var _this = wot.core;
 
-		/* check for rating changes */
-		if (wot.cache.cacheratingstate(data.state.target,
-			data.state)) {
+        if (!data || !data.target) return;  // do nothing if target is undefined
 
-			// Remember time when testimony were set
-			var warned_expire = (new Date()).getTime() + wot.expire_warned_after;
-			wot.cache.setflags(data.state.target, {warned: true,
-				warned_expire: warned_expire });
+        try {
+            var target = data.target,
+                is_rated = false,
+                testimonies_changed = false,
+                comment_changed = false,
+                has_comment = false,
+                user_comment = data.user_comment,
+                user_comment_id = 0,
+                cached = data.cached,
+                changed_votes = data.changed_votes,     // user votes diff as an object
+                changed_votes_str = data.changed_votes_str, // user's votes diff for categories as string
+                votes = data.votes, // user's votes for categories as object {cat_id : vote }
+                has_up_votes = data.has_up_votes,
+                votes_changed = false;  // just a flag that votes have been changed
 
-			var params = {};
+            /* message was shown */
 
-			wot.components.forEach(function(item) {
-				if (data.state[item.name]) {
-					params["testimony_" + item.name] =
-						data.state[item.name].t;
-				}
-			});
+            // on unload finishing, restore previous message or remove current
+            if (unload && _this.usermessage && _this.usermessage.previous) {
+                _this.usermessage = _this.usermessage.previous;
+            }
 
-			/* submit new ratings */
-			wot.api.submit(data.state.target, params);
-		}
+            if (_this.unseenmessage()) {
+                wot.prefs.set("last_message", _this.usermessage.id);
+            }
+
+            if (target) {
+                is_rated = data.is_rated;
+                votes_changed = !wot.utils.isEmptyObject(changed_votes);
+
+                // Whether ratings OR categories were changed?
+                testimonies_changed = (data.was_in_ratemode && (wot.cache.cacheratingstate(target, data.state, changed_votes) || votes_changed));
+
+                has_comment = (user_comment.length > 0);
+
+                if (cached.comment && cached.comment.comment && cached.comment.comment.length > 0) {
+                    user_comment_id = cached.comment.wcid;
+                    comment_changed = (cached.comment.comment != user_comment);
+                } else {
+                    comment_changed = has_comment;  // since there was no comment before
+                    user_comment_id = 0;            // no previous comment, set cid to zero
+                }
+            }
+
+//            console.log("testimonies_changed:", testimonies_changed);
+//            console.log("comment_changed:", comment_changed);
+//            console.log("is_rated:", is_rated);
+//            console.log("has_comment:", has_comment);
+
+            /* if user's testimonies or categories were changed, store them in the cache and submit */
+            if (testimonies_changed) {
+
+                // don't show warning screen immediately after rating and set "expire to" flag
+                var warned_expire = (new Date()).getTime() + wot.expire_warned_after;
+                wot.cache.setflags(target, {warned: true, warned_expire: warned_expire });
+
+                /* submit new ratings */
+                var params = {};
+
+                wot.components.forEach(function(item) {
+                    if (data.state[item.name]) {
+                        params["testimony_" + item.name] = data.state[item.name].t;
+                    }
+                });
+
+                if (votes_changed) {
+                    params.votes = changed_votes_str;
+                }
+
+                wot.api.submit(target, params);
+
+                var submission_mode = unload ? "auto" : "manual";
+
+                // count testimony event
+                if (is_rated) {
+                    wot.ga.fire_event(wot.ga.categories.RW, wot.ga.actions.RW_TESTIMONY, submission_mode);
+                } else {
+                    wot.ga.fire_event(wot.ga.categories.RW, wot.ga.actions.RW_TESTIMONY_DEL, submission_mode);
+                }
+
+            } else {
+//                console.log("No testimonies & votes to submit them. Ignored.");
+            }
+
+            if (unload) {  // RW was closed by browser (not by clicking "Save")
+//                console.log("RW triggered finish state during Unload");
+
+                if ((comment_changed)) {
+//                    console.log("The comment seems to be changed");
+                    // when comment body is changed, we might want to store it locally
+                    wot.keeper.save_comment(target, user_comment, user_comment_id, votes, wot.keeper.STATUSES.LOCAL);
+                    wot.ga.fire_event(wot.ga.categories.RW, wot.ga.actions.RW_COMMENTKEPT);
+                }
+
+            } else { // User clicked Save
+                // TODO: make it so, that if votes were changed and user have seen the comment, then submit the comment
+                if (comment_changed && has_up_votes) {
+                    // Comment should be submitted, if (either comment OR categories votes were changed) AND at least one up vote is given
+                    if (has_comment) {
+//                        console.log("SUBMIT COMMENT");
+
+                        // If user can't leave a comment for a reason, accept the comment locally, otherwise submit it silently
+                        var keeper_status = (data.allow_commenting && data.is_registered) ? wot.keeper.STATUSES.SUBMITTING : wot.keeper.STATUSES.LOCAL;
+                        wot.keeper.save_comment(target, user_comment, user_comment_id, votes, keeper_status);
+
+                        if (data.allow_commenting && data.is_registered) {
+                            wot.api.comments.submit(target, user_comment, user_comment_id, data.votes_str);
+                            wot.ga.fire_event(wot.ga.categories.RW, wot.ga.actions.RW_COMMENTADDED);
+                        }
+
+                    } else {
+                        if (comment_changed) {
+                            // remove the comment
+//                            console.log("REMOVE COMMENT");
+                            wot.keeper.remove_comment(target);
+                            if (data.is_registered) {
+                                wot.api.comments.remove(target);
+                                wot.ga.fire_event(wot.ga.categories.RW, wot.ga.actions.RW_COMMENTREMOVED);
+                            }
+                        }
+                    }
+                }
+            }
+
+            /* update all views */
+            wot.core.update(false);   // explicitly told to not update the rating window
+        } catch (e) {
+            console.error("ratingwindow.finishstate: failed with ", e);
+        }
 	},
 
 	onload: function()
@@ -392,16 +545,16 @@ $.extend(wot, { core: {
 		try {
 			/* messages */
 
-			wot.use_popover = !!safari.extension.createPopover;
+			wot.use_popover = !!safari.extension.createPopover; // detect whether the browser supports popovers
 
 			if(wot.use_popover) {
 				wot.bind("prefs:set", function(name, value) {
-					var upds = wot.popover.contentWindow.wot.ratingwindow.update_settings;
+					var updsettings_func = wot.popover.contentWindow.wot.ratingwindow.update_settings;
 					try {
-						upds();
+						updsettings_func();
 					} catch (e) {
 						// it is possible to get exception when window is not inited
-						setTimeout(upds, 500);
+						setTimeout(updsettings_func, 500);
 					}
 				});
 			}
@@ -427,6 +580,7 @@ $.extend(wot, { core: {
 
 						if (obj.status == wot.cachestatus.ok ||
 							obj.status == wot.cachestatus.link) {
+                            obj.value.decodedtarget = wot.url.decodehostname(obj.value.target);
 							ratings[target] = obj.value;
 						}
 					});
@@ -453,6 +607,7 @@ $.extend(wot, { core: {
 			});
 
 			wot.bind("message:rating:finishstate", function(port, data) {
+//                console.log("message:rating:finishstate");
 				wot.core.finishstate(data);
 			});
 
@@ -513,7 +668,7 @@ $.extend(wot, { core: {
 
 				if(!wot.popover) {
 					wot.popover = safari.extension.createPopover("wot_ratewindow",
-						safari.extension.baseURI+"content/ratingwindow.html", 335, 490);
+						safari.extension.baseURI+"content/ratingwindow.html", wot.core.popover.width, wot.core.popover.height);
 				}
 
 				this.attach_popover();
@@ -528,20 +683,12 @@ $.extend(wot, { core: {
 				}, true);
 
 				safari.application.addEventListener("validate", function(e) {
+                    // when tab is switched, for example
 					if (e.target.identifier === "wot_button") {
-
-						if(wot.popover && wot.popover.contentWindow && wot.popover.contentWindow.wot) {
-							var rw = wot.popover.contentWindow.wot.ratingwindow;
-							if(rw && rw.state) {
-								wot.core.finishstate({state: rw.state});
-							}
-						}
-
-						wot.core.update();
+						wot.core.update(true);
 					}
 				}, false);
 			} else {
-
 				// This part is used for old Safari (<5.1) which don't
 				// support Popovers feature
 
@@ -588,10 +735,14 @@ $.extend(wot, { core: {
 				}
 
 				if (wot.api.isregistered()) {
+//                    wot.core.welcome_user();
 					wot.api.setcookies();
 					wot.api.update();
 					wot.api.processpending();
-				}
+                    wot.api.comments.processpending();
+                    wot.wt.init();  // initialize welcome tips engine
+//                    wot.surveys.init(); // init surveys engine
+                }
 			});
 
 			wot.cache.purge();

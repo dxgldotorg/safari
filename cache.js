@@ -1,6 +1,6 @@
 /*
 	cache.js
-	Copyright © 2009  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2013  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -21,6 +21,7 @@
 $.extend(wot, { cache: {
 	cache: {},
 	flags: {},
+    captcha_required: false,
 
 	maxage: 30 * 60 * 1000, /* 30min */
 
@@ -40,27 +41,60 @@ $.extend(wot, { cache: {
 			this.flags[name] = this.flags[name] || {};
 			$.extend(this.flags[name], flags || {});
 		} catch (e) {
-			console.log("cache.setflags: failed with " + e + "\n");
+			console.log("cache.setflags: failed with ", e);
 		}
 	},
 
 	set: function(name, status, value)
 	{
 		try {
-			this.cache[name] = {
+
+            if (!this.cache[name]) {
+                this.cache[name] = {};
+            }
+
+            $.extend(this.cache[name], {
 				updated: Date.now(),
 				status: status || wot.cachestatus.error,
 				value: value || {}
-			};
+            });
 
 			wot.trigger("cache:set", [ name, this.cache[name ] ]);
 			return true;
 		} catch (e) {
-			console.log("cache.set: failed with " + e + "\n");
+			console.log("cache.set: failed with ", e);
 		}
 
 		return false;
 	},
+
+    set_comment: function (name, comment_data) {
+        wot.log("wot.cache.set_comment(name, comment_data)", name, comment_data);
+
+        if (!this.cache[name]) {
+            this.cache[name] = {}
+        }
+
+        $.extend(this.cache[name], {
+            comment: comment_data
+        });
+    },
+
+    update_comment: function (name, data) {
+        wot.log("wot.cache.update_comment(name, comment_data)", name, data);
+
+        if (this.cache[name] && this.cache[name].comment) {
+            $.extend(this.cache[name].comment, data);
+        } else {
+            wot.log("WARN! wot.cache.update_comment() can't find comment data for ", name);
+        }
+    },
+
+    remove_comment: function (name) {
+        if (this.cache[name] && this.cache[name].comment) {
+            delete this.cache[name].comment;
+        }
+    },
 
 	get: function(name)
 	{
@@ -77,7 +111,7 @@ $.extend(wot, { cache: {
 				}
 			}
 		} catch (e) {
-			console.log("cache.get: failed with " + e + "\n");
+			console.log("cache.get: failed with", e);
 		}
 
 		return null;
@@ -92,7 +126,7 @@ $.extend(wot, { cache: {
 				return true;
 			}
 		} catch (e) {
-			console.log("cache.clear: failed with " + e + "\n");
+			console.log("cache.clear: failed with", e);
 		}
 
 		return false;
@@ -123,7 +157,7 @@ $.extend(wot, { cache: {
 
 	purge: function()
 	{
-		wot.log("cache.purge\n");
+		wot.log("cache.purge");
 
 		/* clear all expired items by going through them */
 		this.each(function() {});
@@ -133,7 +167,8 @@ $.extend(wot, { cache: {
 			}, this.maxage);
 	},
 
-	cacheratingstate: function(name, state)
+	cacheratingstate: function(name, state, votes_changed)
+    // Detects changes in user's ratings and stores them in local cache. Returns the flag whether the testimonies have been changed.
 	{
 		try {
 			state = state || {};
@@ -154,6 +189,19 @@ $.extend(wot, { cache: {
 					}
 				});
 
+                if (!wot.utils.isEmptyObject(votes_changed)) {
+                    for (var cid in votes_changed) {
+                        if (!obj.value.cats[cid]) {
+                            obj.value.cats[cid] = {
+                                id: cid,
+                                c: 0    // since it wasn't in the cache, then it is not identified (?)
+                            }
+                        }
+                        obj.value.cats[cid].v = votes_changed[cid];
+                    }
+                    changed = true;
+                }
+
 				if (changed) {
 					this.set(name, obj.status, obj.value);
 				}
@@ -161,7 +209,7 @@ $.extend(wot, { cache: {
 				return changed;
 			}
 		} catch (e) {
-			console.log("cache.cacheratingstate: failed with " + e + "\n");
+			console.log("cache.cacheratingstate: failed with ", e);
 		}
 
 		return false;
@@ -174,15 +222,30 @@ $.extend(wot, { cache: {
 		try {
 			status = status || wot.cachestatus.ok;
 
+			var nonce = data.firstChild.getAttribute("nonce");
 			var targets = data.getElementsByTagName("target");
 
 			$(targets).each(function() {
+				var index = $(this).attr("index");
+
 				var obj = {
-					target: hosts[$(this).attr("index") || 0]
+					target: hosts[index || 0],
+                    cats: {},
+                    blacklist: []
 				};
 
 				if (!obj.target) {
 					return;
+				}
+
+				var normalized = $(this).attr("normalized");
+
+				if (normalized !== undefined) {
+					normalized = wot.crypto.decrypt(normalized, nonce, index);
+
+					if (/^[\x00-\xFF]*$/.test(normalized)) {
+						obj.normalized = wot.url.decodehostname(normalized);
+					}
 				}
 
 				$("application", this).each(function() {
@@ -211,11 +274,67 @@ $.extend(wot, { cache: {
 					}
 				});
 
+                // parse site's categories and user's votes
+                $("category", this).each(function() {
+                    var name = $(this).attr("name"),
+                        c = $(this).attr("c"),
+                        vote = $(this).attr("vote"),
+                        inherited = $(this).attr("inherited");  // we don't use this right now
+
+                    if (name) {
+                        obj.cats[name] = {
+                            id: parseInt(name),
+                            c: $.isNumeric(c) ? parseInt(c) : 0,
+                            v: $.isNumeric(vote) ? parseInt(vote) : undefined
+                        };
+                    }
+                });
+
+                // parse blacklisting info
+                $("bl", this).each(function() {
+                    var type = $(this).attr("type"),
+                        time = $(this).attr("time");
+
+                    if (type) {
+                        obj.blacklist.push({
+                            type: type,
+                            time: time
+                        });
+                    }
+                });
+
+				// parse survey's question whether it exists
+				$("question", this).each(function() {
+					// "this" here contains <question> tag's content
+					var question_id = parseInt($("questionId", this).text(), 10);
+					var question_text = $("questionText", this).text().trim();
+                    var dismiss_text = $("dismiss", this).text();
+					var choices = [];
+
+					$("choiceText", this).each(function() {
+						// "this" here contains <choiceText> tag's content
+						var choice_value = parseInt($(this).attr("value"), 10);
+						var choice_text = $(this).text().trim();
+
+						choices.push({ value: choice_value, text: choice_text });
+					});
+
+					if (question_id !== undefined && question_text && choices.length > 0) {
+						obj.question = {
+							id: question_id,
+							text: question_text,
+							choices: choices,
+                            dismiss_text: dismiss_text
+						};
+					}
+					return false;   // process only first element whether there are several
+				});
+
 				wot.cache.set(obj.target, status, obj);
 				++processed;
 			});
 		} catch (e) {
-			console.log("cache.cacheresponse: failed with " + e + "\n");
+			console.log("cache.cacheresponse: failed with ", e);
 		}
 
 		return processed;

@@ -6,6 +6,10 @@ body {
 }
 
 #wot-ratingwindow {
-	border: 1px solid gray;
-	padding: 5px;
+    padding: 20px;
+    width: 400px;
+    background-color: white;
+    border: 2px solid silver;
+    border-radius: 4px;
+    font-family: Arial;
 }

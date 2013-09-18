@@ -75,7 +75,7 @@ $.extend(wot, { locale: {
 
 	onload: function()
 	{
-		wot.addready("locale", this);
+		wot.addready("locale", wot.locale);
 
 		wot.bind("message:locale:get", function(port, data) {
 			wot.bind("locale:ready", function() {

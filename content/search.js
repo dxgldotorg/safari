@@ -1,6 +1,6 @@
 /*
 	content/search.js
-	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2013  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -20,6 +20,8 @@
 
 wot.search = {
 	added: {},
+	base_element: "div",
+	on_update_callback: null,       // will be set from wot.wt.donuts code
 
 	getattrname: function(name)
 	{
@@ -229,65 +231,80 @@ wot.search = {
 			});
 
 		} catch (e) {
-			console.log("search.processrule: failed with " + e + "\n");
+			console.log("search.processrule: failed with " + e);
 		}
 	},
 
-	addrating: function(target, link, frame)
+	is_ninja: function(rule)
+	{
+		return rule.ninja && wot.search.settings.ninja_donuts;
+	},
+
+	addrating: function(target, link, frame, rule)
 	{
 		try {
-			var elem = frame.document.createElement("div");
+			// ninja - is experimental feature to make donuts on the SERP hidden
+			var is_ninja = wot.search.is_ninja(rule);
+			var elem = frame.document.createElement(wot.search.base_element);
 
 			if (elem) {
+
+				var link_parent = link.parentNode;
+
 				elem.setAttribute(this.getattrname("target"), target);
 
+				if(is_ninja) elem.setAttribute("class", "invisible");
+
 				elem.setAttribute("style",
-					"display: inline-block; " +
 					"cursor: pointer; " +
 					"width: 16px; " +
-					"height: 16px;");
+					"height: 16px;" +
+					"display: inline-block;");
+
+				if(is_ninja) {
+
+					var ninja_timer = null,
+						visibility = null; // class name to control donuts' visibility
+
+					// clojure
+					function set_visibility() {
+						elem.setAttribute("class", visibility);
+			}
+
+					function do_ninja(event) {
+						// It needs to be called as clojure to access "elem"
+
+						if (ninja_timer) clearTimeout(ninja_timer);
+
+						if(event.type == "mouseout") {
+							visibility = "invisible";
+							// delay, to prevent premature hiding causes by bubled events from element's children
+							ninja_timer = setTimeout(set_visibility, 100);
+				return;
+						} else {
+							visibility = "visible";
+			}
+
+						set_visibility();
+					}
+
+					// use parent to avoid hiding donut when cursor moves to it but goes out of the link
+					link_parent.addEventListener("mouseover", do_ninja, false);
+					link_parent.addEventListener("mouseout", do_ninja, false);
+			}
 
 				elem.addEventListener("click", this.onclickrating, false);
 
 				if (link.nextSibling) {
-					elem = link.parentNode.insertBefore(elem, link.nextSibling);
+					elem = link_parent.insertBefore(elem, link.nextSibling);
 				} else {
-					elem = link.parentNode.appendChild(elem);
+					elem = link_parent.appendChild(elem);
 				}
 
 				elem.innerHTML = "&nbsp;";
 			}
 		} catch (e) {
-			console.log("search.addrating: failed with " + e + "\n");
-		}
-	},
-
-	addstyle: function(css, frame, id)
-	{
-		try {
-			if (id && frame.document.getElementById(id)) {
-				return;
-			}
-
-			var style = frame.document.createElement("style");
-
-			style.setAttribute("type", "text/css");
-
-			if (id) {
-				style.setAttribute("id", id);
-			}
-
-			style.innerText = css;
-
-			var insertpoint =
-				frame.document.getElementsByTagName("head") ||
-				frame.document.getElementsByTagName("body");
-
-			if (insertpoint && insertpoint.length) {
-				insertpoint[0].appendChild(style);
-			}
-		} catch (e) {
-			console.log("search.addstyle: failed with " + e);
+			console.log("search.addrating: failed with " + e);
 		}
 	},
 
@@ -376,6 +393,8 @@ wot.search = {
 			var targets = [];
 
 			for (var i = 0; i < frame.document.links.length; ++i) {
+
+				try {
 				var link = frame.document.links[i];
 
 				if (link.isContentEditable || !link.parentNode || !link.href ||
@@ -386,9 +405,14 @@ wot.search = {
 				link.setAttribute(this.getattrname("processed"), true);
 
 				this.processrule(rule, link, function(elem, target) {
-					wot.search.addrating(target, elem, frame);
+						wot.search.addrating(target, elem, frame, rule);
 					targets.push(target);
 				});
+
+				} catch (e) {
+					console.error("Process frame raised exception", e);
+			}
+
 			}
 
 			wot.bind("url:ready", function() {
@@ -399,7 +423,7 @@ wot.search = {
 				}
 			});
 		} catch (e) {
-			console.log("search.processframe: failed with " + e);
+			console.error("search.processframe: failed with ", e);
 		}
 	},
 
@@ -413,7 +437,12 @@ wot.search = {
 			"search_level",
 			"search_type",
 			"show_search_popup",
-			"use_search_level"
+			"use_search_level",
+			"ninja_donuts",
+			"ninja_announceshown",
+			"ninja_wave",
+            "update:state",
+            "super_showtestimonies"
 		];
 
 		wot.components.forEach(function(item) {
@@ -438,11 +467,28 @@ wot.search = {
 		if (this.matchrule(data.rule, window)) {
 			this.processframe(data.rule, window, function(targets) {
 				/* add common styles */
-				if (data.rule.prestyle) {
-					wot.search.addstyle(
-						wot.search.formatcss(data.rule.prestyle), window,
-						wot.search.getname("prestyle"));
+
+				if(wot.search.is_ninja(data.rule)) {
+					/* Visibility and CSS transitions for Ninja-donuts */
+					var ninja_style = "" +
+						"div[wotsearchtarget] {" +
+							"-webkit-transition: opacity 0.1s cubic-bezier(0.25,0.1,0.25,1) 0.5s;" +
+						"} " +
+						"div[wotsearchtarget].visible {" +
+							"-webkit-transition: opacity 0s;" +
+							"opacity: 1.0;" +
+						"} " +
+						"div[wotsearchtarget].invisible {" +
+							"opacity: 0.0;" +
+						"}";
+					wot.utils.attach_style({style: ninja_style}, "wotninja", window);
 				}
+
+				if (data.rule.prestyle) {
+					wot.utils.attach_style({style: wot.search.formatcss(data.rule.prestyle)}, wot.search.getname("prestyle"), window);
+				}
+
+				wot.init_categories(wot.search.settings);   // init categories
 
 				if (data.rule.popup && data.rule.popup.match &&
 						data.rule.popup.match.length) {
@@ -450,10 +496,10 @@ wot.search = {
 									rule.popup.match[0], window);
 
 					if (elem) {
-						wot.popup.add(elem);
+						wot.popup.add(elem, data.rule.name);
 					}
 				} else {
-					wot.popup.add();
+					wot.popup.add(null, data.rule.name);
 				}
 
 				/* TODO: content scripts? */
@@ -493,7 +539,11 @@ wot.search = {
 		}
 
 		if (style.length) {
-			this.addstyle(style, window);
+			wot.utils.attach_style({style: style}, null, window);
+		}
+
+		if (data.wt_enabled) {
+			wot.popup.show_wtip = true;
 		}
 	},
 
