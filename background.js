@@ -210,9 +210,9 @@ $.extend(wot, { core: {
 				if(!ratingwindow) return;
 
                 if (update_rw) {    // full update of Rating Window only if asked
-					ratingwindow.usercontent = usercontent;
-					ratingwindow.update(data);
-				}
+                    ratingwindow.usercontent = usercontent;
+                    ratingwindow.update(data);
+                }
 			}
 
 		} catch (e) {
