@@ -19,7 +19,7 @@
 */
 
 var wot = {
-	version: 20130909,
+	version: 20130919,
 	platform: "safari",
     locale: "en",           // cached value of the locale
     lang: "en-US",          // cached value of the lang
@@ -28,7 +28,7 @@ var wot = {
     enable_surveys: false,   // Feedback loop engine
 	use_popover: false, // enable Popover feature (in Safari >= 5.1)
 
-	ga_id: "UA-35564069-1", // test: UA-35564069-1 , live: UA-2412412-8
+	ga_id: "UA-2412412-8", // test: UA-35564069-1 , live: UA-2412412-8
 
 	// environment (browser, etc)
 	env: {
