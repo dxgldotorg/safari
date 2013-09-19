@@ -30,17 +30,17 @@ $.extend(wot, { exp: {
 //		},
 		rtip: {
 			options: ["neu", "stk"],    // Neutral | Sticker
-			default: "stk",
+			"default": "stk",
 			expires: new Date(2013, 3, 11)
 		},
 		wtip: {
 			options: ["on", "off"],
-			default: "on",
+			"default": "on",
 			expires: new Date(2013, 3, 30)
 		},
 		beta: {
 			options: ["v1"],
-			default: "v1",
+			"default": "v1",
 			expires: new Date(2013, 8, 1)
 		}
 	},
@@ -61,7 +61,7 @@ $.extend(wot, { exp: {
 
 			is_expired = _this.is_expired(exp, vr);
 			if (is_expired) {
-				return vr === eo.default;   // when the Exp is expired, test the variant whether it is equal to default one
+				return vr === eo["default"];   // when the Exp is expired, test the variant whether it is equal to default one
 			}
 
 			if (eo.current) {
