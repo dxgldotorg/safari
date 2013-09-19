@@ -804,7 +804,7 @@ $.extend(wot, { ratingwindow: {
         var rw = wot.ratingwindow;
         wot.alllocales = bg.wot.alllocales;
         wot.lang = bg.wot.lang;
-        wot.cache_locale();
+//        wot.cache_locale();
 
         var first_opening = !_rw.prefs.get(wot.engage_settings.invite_to_rw.pref_name);
 

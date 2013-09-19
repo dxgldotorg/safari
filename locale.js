@@ -59,7 +59,7 @@ $.extend(wot, { locale: {
 
 	setlocale: function()
 	{
-		var lang = (window.navigator.lang || "en").replace(/-/g, "_");
+		var lang = (window.navigator.language || "en").replace(/-/g, "_");
 
 		if (!this.languages[lang]) {
 			lang = lang.replace(/_.*$/, "");
