@@ -1,6 +1,6 @@
 /*
 	content/settings.js
-	Copyright © 2009 - 2012  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2013  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -19,9 +19,10 @@
 */
 
 wot.settings = {
-	trigger: /^http(s)?\:\/\/(www\.)?mywot\.com\/([^\/]{2}(-[^\/]+)?\/)?settings\/.+/,
-	forward: /^http(s)?\:\/\/(www\.)?mywot\.com\/([^\/]{2}(-[^\/]+)?\/)?settings(\/([^\/]+))?\/?(\?.+)?$/,
-	match: 6,
+	trigger: /^(http(s)?\:\/\/(.+\.)?mywot\.com)\/([^\/]{2}(-[^\/]+)?\/)?settings\/.+/,
+	forward: /^(http(s)?\:\/\/(.+\.)?mywot\.com)\/([^\/]{2}(-[^\/]+)?\/)?settings(\/([^\/]+))?\/?(\?.+)?$/,
+    base: 1,
+	match: 7,
 
 	addscript: function(js)
 	{
@@ -50,12 +51,11 @@ wot.settings = {
 		for (var i = 0; i < inputs.length; ++i) {
 			var attrs = {};
 
-			[ "id", "type" ].forEach(function(item) {
+			[ "id", "value" ].forEach(function(item) {
 				attrs[item] = inputs[i].getAttribute(item);
 			});
 
-			if (!/^wotsearch-/.test(attrs.id) || attrs.type != "checkbox" ||
-					inputs[i].checked) {
+			if (!/^wotsearch-/.test(attrs.id) || attrs.value == 1) {
 				continue;
 			}
 
@@ -153,17 +153,8 @@ wot.settings = {
 
 	loadsearch: function()
 	{
-		var elem = document.getElementById("wotsearch");
-
-		if (!elem) {
-			return;
-		}
-
-		var preftype = elem.getAttribute("wotpref");
-
-		if (preftype != "input") {
-			return;
-		}
+		// makre sure we are on settings page
+        if (!document.getElementById("search-services")) return;
 
 		wot.prefs.get("search:state", function(name, state) {
 			state = state || {};
@@ -182,6 +173,8 @@ wot.settings = {
 					return 0;
 				});
 
+                var search_rules = [];
+
 				update.search.forEach(function(item) {
 					if (!item.display) {
 						return;
@@ -189,26 +182,18 @@ wot.settings = {
 
 					var id = "wotsearch-" + item.name;
 
-					var input = document.createElement("input");
-					var label = document.createElement("label");
+                    search_rules.push({
+                        id: id,
+                        display: item.display,
+                        name: item.name,
+                        state: !state[item.name]
+                    });
+				});
 
-					input.setAttribute("id", id);
-					input.setAttribute("class", "wotsearchpref");
-					input.setAttribute("type", "checkbox");
-					input.setAttribute("wotpref", "bool");
-					input.checked = !state[item.name];
+                wot.settings.addscript("build_search_rules('"+JSON.stringify(search_rules)+"')");
 
-					label.setAttribute("for", id);
-					label.innerText = item.display;
-
-					elem.appendChild(input);
-					elem.appendChild(label);
-					elem.appendChild(document.createElement("br"));
-
-					wot.log("settings.loadsearch: added " + id);
 				});
 			});
-		});
 	},
 
 	loadsetting: function(elem)
@@ -240,27 +225,25 @@ wot.settings = {
 		var inputs = document.getElementsByTagName("input");
 
 		for (var i = 0; i < inputs.length; ++i) {
-			this.loadsetting(inputs[i]);
+			wot.settings.loadsetting(inputs[i]);
 		}
 	},
 
 	load: function()
 	{
+        // Initializes values on the settings page according to add-on's settings
 		try {
-			this.loadinputs();
-			this.loadsearch();
+			wot.settings.loadinputs();
+			wot.settings.loadsearch();
 
-			[ "wotsave", "wotnext" ].forEach(function(id) {
-				var elem = document.getElementById(id);
+            var elem = document.getElementById("wotsave");
 
 				if (elem) {
 					elem.addEventListener("click", function() {
-							wot.settings.save();
+                    var target_id = elem.getAttribute("target") || null;
+                        wot.settings.save(target_id);
 						}, false);
 				}
-			});
-
-			/* TODO: levels */
 
 			wot.bind("prefs:ready", function() {
 				wot.settings.addscript("wotsettings_ready();");
@@ -277,20 +260,32 @@ wot.settings = {
 			return; /* ignore the settings page if it's in a frame */
 		}
 
+		wot.detect_environment(true); // detect but don't change preferences
+
 		var match = window.location.href.match(this.forward);
 
 		if (match) {
-			/* redirect to the correct settings language and version */
-			var section = match[this.match];
 
-			wot.bind("locale:ready", function() {
+			wot.prefs.get("partner", function(n, partner){
+
+				wot.partner = partner;
+			/* redirect to the correct settings language and version */
+				var section = match[wot.settings.match];
+
 				/* make sure we have set up authentication cookies */
 				wot.bind("my:ready", function() {
-					window.location.href = wot.urls.settings + "/" +
-						wot.i18n("lang") + "/" + wot.platform + "/" +
-						wot.version + ((section) ? "/" + section : "");
+                    var base = (match[wot.settings.base] + "/settings") || wot.urls.settings,
+					    loc = base + "/" +
+						wot.i18n("lang") + "/" + wot.platform + "/" + wot.version +
+						(wot.partner ? "/" + wot.partner : "") +
+						(section ? "/" + section : "");
+
+					loc += (wot.partner ? "#ratings" : ""); // fix for a bug "empty settings tab if partner is set"
+
+					window.location.href = loc;
 				});
 			});
+
 		} else if (this.trigger.test(window.location.href)) {
 			/* load settings for this page */
 			document.addEventListener("DOMContentLoaded", function() {
