@@ -104,7 +104,7 @@ $.extend(wot, { ga: {
 		if (!wot.ga._tracker) {
 			if (_gat) {
 				try {
-					wot.ga._tracker = _gat.getTrackerByName();
+					wot.ga._tracker = _gat._getTrackerByName();
 					wot.ga._tracker._setAccount(wot.ga_id);
 				} catch (e) {
 					// failed. No Problem.

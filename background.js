@@ -708,7 +708,9 @@ $.extend(wot, { core: {
 	onload: function()
 	{
 		try {
+            wot.core.launch_time = new Date();
 			/* messages */
+            wot.exp.init();
 
 			wot.use_popover = !!safari.extension.createPopover; // detect whether the browser supports popovers
 
@@ -910,7 +912,6 @@ $.extend(wot, { core: {
 
 				if (wot.api.isregistered()) {
                     wot.core.welcome_user();
-					wot.api.setcookies();
 					wot.api.update();
 					wot.api.processpending();
                     wot.api.comments.processpending();
@@ -919,8 +920,8 @@ $.extend(wot, { core: {
                 }
 			});
 
-			wot.cache.purge();
-
+            wot.ga.post_init(); // finilize setting up GA engine
+            wot.cache.purge();
 
 		} catch (e) {
 			wot.flog("core.onload: failed with " + e);
@@ -928,10 +929,4 @@ $.extend(wot, { core: {
 	}
 }});
 
-if (wot.locale && wot.locale.isready) {
-    wot.core.onload();
-} else {
-    wot.addready("locale", wot.core, wot.core.onload);
-}
-
-
+wot.core.onload();

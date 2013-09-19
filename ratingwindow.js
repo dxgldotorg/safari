@@ -431,7 +431,7 @@ $.extend(wot, { ratingwindow: {
 	{
         var _rw = wot.ratingwindow;
 		try {
-            _rw.updatestate(data.target, data.cached);
+            _rw.updatestate(data.target, data.cached, false);
 
             _rw.current = data || {};
             _rw.updatecontents();
