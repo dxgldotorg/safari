@@ -46,27 +46,27 @@ $.extend(wot, { locale: {
 
 		xhr.onreadystatechange = function() {
 			if (this.readyState == 4) {
-				wot.alllocales[wot.language] =
+				wot.alllocales[wot.lang] =
 					JSON.parse(this.responseText) || {};
 				(ondone || function() {})();
 			}
 		};
 
 		xhr.open("GET", safari.extension.baseURI + "_locales/" +
-			wot.language + "/messages.json");
+			wot.lang + "/messages.json");
 		xhr.send();
 	},
 
 	setlocale: function()
 	{
-		var lang = (window.navigator.language || "en").replace(/-/g, "_");
+		var lang = (window.navigator.lang || "en").replace(/-/g, "_");
 
 		if (!this.languages[lang]) {
 			lang = lang.replace(/_.*$/, "");
 		}
 
-		wot.language = this.languages[lang] || "en";
-		wot.log("wot.locale.setlocale: selected " + wot.language + "\n");
+		wot.lang = this.languages[lang] || "en";
+		wot.log("wot.locale.setlocale: selected " + wot.lang + "\n");
 
 		this.loadlocale(function() {
 			wot.locale.ready(true);
@@ -80,8 +80,8 @@ $.extend(wot, { locale: {
 		wot.bind("message:locale:get", function(port, data) {
 			wot.bind("locale:ready", function() {
 				port.post("put", {
-					language: wot.language,
-					locale: wot.alllocales[wot.language] || {}
+					language: wot.lang,
+					locale: wot.alllocales[wot.lang] || {}
 				});
 			});
 		});

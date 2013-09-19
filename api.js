@@ -287,29 +287,9 @@ $.extend(wot, { api: {
 		return setcookies;
 	},
 
-	showupdatepage: function()
-	{
-		var update = wot.prefs.get("firstrun:update") || 0;
-
-		if (update < wot.firstrunupdate) {
-			wot.prefs.set("firstrun:update", wot.firstrunupdate);
-
-			wot.bind("locale:ready", function() {
-				var wnd = safari.application.activeBrowserWindow;
-				var tab = wnd.openTab("foreground");
-				tab.url = wot.urls.update + "/" + wot.i18n("lang") + "/" +
-							wot.platform + "/" + wot.version;
-			});
-		}
-	},
-
 	setcookies: function(onready)
 	{
 		onready = onready || function() {};
-
-		if (wot.prefs.get("firstrun:welcome")) {
-			this.showupdatepage();
-
 			var cookies = this.processcookies();
 
 			if (cookies) {
@@ -319,20 +299,7 @@ $.extend(wot, { api: {
 					url: wot.urls.setcookies + "?" + cookies.join("&"),
 					complete: onready
 				});
-			} else {
-				onready();
 			}
-		} else {
-			/* use the welcome page to set the cookies on the first run */
-			wot.prefs.set("firstrun:welcome", true);
-			wot.prefs.set("firstrun:update", wot.firstrunupdate);
-
-			var wnd = safari.application.activeBrowserWindow;
-			var tab = wnd.openTab("foreground");
-			tab.url = wot.urls.settings + "/welcome";
-
-			onready();
-		}
 	},
 
 	link: function(hosts, onupdate, retrycount)
@@ -583,7 +550,6 @@ $.extend(wot, { api: {
 
 	submit: function(target, testimonies)
 	{
-//        console.log("api.submit()", arguments);
 		var state = wot.prefs.get("pending:" + target) || {
 			target: target,
 			testimonies: {},

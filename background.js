@@ -170,8 +170,7 @@ $.extend(wot, { core: {
         if(wot.popover && wot.popover.contentWindow && wot.popover.contentWindow.wot) {
             try {
                 var rw = wot.popover.contentWindow.wot.ratingwindow,
-                    tab = safari.application.activeBrowserWindow.activeTab;
-                var target = wot.url.gethostname(tab.url),
+                    target = wot.core.get_current_target(),
                     cached = wot.cache.get(target);
 
                 // get locally stored comment if exists
@@ -399,6 +398,25 @@ $.extend(wot, { core: {
 		return false;
 	},
 
+    navigate: function (url) {
+        var wnd = safari.application.activeBrowserWindow;
+        var tab = wnd.openTab("foreground");
+        tab.url = url;
+    },
+
+    open_mywot: function(url, context)
+    {
+        var c_url = wot.contextedurl(url, context);
+        wot.core.navigate(c_url);
+    },
+
+    open_scorecard: function(target, context, hash)
+    {
+        if(!target) return;
+        hash = hash ? "#" + hash : "";
+        var url = wot.contextedurl(wot.urls.scorecard + encodeURIComponent(target), context) + hash;
+        wot.core.navigate(url);
+    },
 	attach_popover: function()
 	{
 		// walk through all windows/toolbars and attach popover
@@ -576,6 +594,117 @@ $.extend(wot, { core: {
         }
     },
 
+    show_updatepage: function()
+    {
+        // show update page only if constant wot.firstrunupdate was increased
+        var update = wot.prefs.get("firstrun:update") || 0;
+        var open_update_page = true;
+
+        if (update < wot.firstrunupdate) {
+            wot.prefs.set("firstrun:update", wot.firstrunupdate);
+
+            // Do some actions when the add-on is updated
+            switch (wot.firstrunupdate) {
+                case 2: // = 2 is a launch of WOT 2.0 in September 2013
+
+                    // clear welcometips counters to show them again
+                    var prefs_to_clear = [
+                        "wt_donuts_shown", "wt_donuts_shown_dt", "wt_donuts_ok",
+                        "wt_intro_0_shown", "wt_intro_0_shown_dt", "wt_intro_0_ok",
+                        "wt_rw_shown", "wt_rw_shown_dt", "wt_rw_ok",
+                        "wt_warning_shown", "wt_warning_shown_dt", "wt_warning_ok"
+                    ];
+
+                    for (var p in prefs_to_clear) {
+                        wot.prefs.clear(prefs_to_clear[p]);
+                    }
+
+                    // set badge "NEW"
+                    wot.core.badge.text = "new";
+                    wot.core.badge.type = wot.badge_types.notice;
+
+                    if (wot.env.is_mailru) {
+                        open_update_page = false;   // Don't open UpdatePage for Mail.ru users
+                    }
+
+                    break;
+            }
+
+            if (open_update_page) {
+                wot.core.navigate(wot.urls.update + "/" + wot.i18n("lang") + "/" +
+                        wot.platform + "/" + wot.version);
+            }
+        }
+    },
+
+    increase_ws_shown: function () {
+        try {
+            var pref_name = "warnings_shown";
+            var count = wot.prefs.get(pref_name) || 0;
+            wot.prefs.set(pref_name, count + 1);
+        } catch (e) {
+            console.log("wot.core.increase_ws_shown() failed with ", e);
+        }
+    },
+
+    welcome_user: function()
+    {
+        // this function runs only once per add-on's launch
+        var time_sincefirstrun = 1;
+        // check if add-on runs not for a first time
+        if (!wot.prefs.get("firstrun:welcome")) {
+            wot.core.first_run = true;
+            wot.prefs.set("firstrun:update", wot.firstrunupdate);
+            wot.prefs.set("firstrun:time", new Date()); // remember first time when addon was run
+
+            // now we have only mail.ru case which requires to postpone opening welcome page
+            var postpone_welcome = wot.env.is_mailru;
+
+            if(postpone_welcome) {
+                // experiment: don't show welcome page at all
+//				wot.core.set_badge(wot.badge_types.notice); // set icon's badge to "notice"
+            } else {
+                /* use the welcome page to set the cookies on the first run */
+                wot.core.navigate(wot.urls.welcome);
+            }
+            wot.prefs.set("firstrun:welcome", true);
+
+            window.setTimeout(function () {
+                // report "installating" event
+                wot.ga.fire_event(wot.ga.categories.GEN, wot.ga.actions.GEN_INSTALLED, String(wot.partner));
+            }, 2000);
+
+        } else {
+            wot.core.show_updatepage();
+            wot.api.setcookies();
+
+            time_sincefirstrun = wot.time_sincefirstrun();
+
+            // if we didn't save firsttime before we should do it now
+            if (!time_sincefirstrun) {
+                time_sincefirstrun = new Date();
+                wot.prefs.set("firstrun:time", time_sincefirstrun);
+            }
+        }
+
+        // adapt min_confidence_level: 12 for newcomers, 8 - for users who use the addon more than 2 weeks
+        var min_level = time_sincefirstrun >= 3600 * 24 * 14 ? 8 : 12;
+        wot.prefs.set("min_confidence_level", min_level);
+
+        try {
+            // Use timeout before reporting launch event to GA, to give GA a chance to be inited
+            window.setTimeout(function () {
+                // report how long in days this add-on is staying installed
+                var time_sincefirstrun = wot.time_sincefirstrun();
+                wot.ga.fire_event(wot.ga.categories.GEN, wot.ga.actions.GEN_LAUNCHED,
+                    String(Math.floor(time_sincefirstrun / wot.DT.DAY)));
+
+            }, 5000);
+        } catch (e) {
+            // do nothing here
+        }
+    },
+
 	onload: function()
 	{
 		try {
@@ -583,17 +712,17 @@ $.extend(wot, { core: {
 
 			wot.use_popover = !!safari.extension.createPopover; // detect whether the browser supports popovers
 
-			if(wot.use_popover) {
-				wot.bind("prefs:set", function(name, value) {
-					var updsettings_func = wot.popover.contentWindow.wot.ratingwindow.update_settings;
-					try {
-						updsettings_func();
-					} catch (e) {
-						// it is possible to get exception when window is not inited
-						setTimeout(updsettings_func, 500);
-					}
-				});
-			}
+//			if(wot.use_popover) {
+//				wot.bind("prefs:set", function(name, value) {
+//					var updsettings_func = wot.popover.contentWindow.wot.ratingwindow.update_settings;
+//					try {
+//						updsettings_func();
+//					} catch (e) {
+//						// it is possible to get exception when window is not inited
+//						setTimeout(updsettings_func, 500);
+//					}
+//				});
+//			}
 
 			wot.bind("message:search:hello", function(port, data) {
 				wot.core.processrules(data.url, function(rule) {
@@ -626,10 +755,8 @@ $.extend(wot, { core: {
 			});
 
 			wot.bind("message:search:openscorecard", function(port, data) {
-				var wnd = safari.application.activeBrowserWindow;
-				var tab = wnd.openTab("foreground");
-				tab.url = wot.contextedurl(wot.urls.scorecard +
-					encodeURIComponent(data.target),data.ctx);
+				var url = wot.contextedurl(wot.urls.scorecard + encodeURIComponent(data.target),data.ctx);
+                wot.core.navigate(url);
 			});
 
 			wot.bind("message:my:update", function(port, data) {
@@ -648,24 +775,16 @@ $.extend(wot, { core: {
 			});
 
 			wot.bind("message:rating:navigate", function(port, data) {
-				var wnd = safari.application.activeBrowserWindow;
-				var tab = wnd.openTab("foreground");
-				tab.url = wot.contextedurl(data.url, data.context);
+				wot.core.navigate(wot.contextedurl(data.url, data.context));
 			});
 
 			wot.bind("message:rating:openscorecard", function(port, data) {
-				var wnd = safari.application.activeBrowserWindow;
-				var tab = wnd.activeTab;
-				var host = wot.url.gethostname(tab.url);
-				tab = wnd.openTab("foreground");
-				tab.url = wot.contextedurl(wot.contewot.urls.scorecard +
-					encodeURIComponent(host), data.context);
+                wot.core.open_scorecard(wot.core.get_current_target(), data.context);
 			});
 
 			wot.bind("message:rating:update", function(port, data) {
-				var tab = safari.application.activeBrowserWindow.activeTab;
-				var host = wot.url.gethostname(tab.url);
-
+                // TODO: check what function calls sends that message. Probably it is not used anymore
+				var host = wot.core.get_current_target();
 				var time = Date.now();
 
 				/* clean up old entries from our list of recently shown
@@ -708,6 +827,7 @@ $.extend(wot, { core: {
 
                         rw.update(data);    // update RW when user opens it
                         wot.core.set_watchdog(true);    // start watchdog to catch the moment when RW is closed
+                        rw.count_window_opened();
                         rw.track_pageview();
                     }
 
@@ -789,7 +909,7 @@ $.extend(wot, { core: {
 				}
 
 				if (wot.api.isregistered()) {
-//                    wot.core.welcome_user();
+                    wot.core.welcome_user();
 					wot.api.setcookies();
 					wot.api.update();
 					wot.api.processpending();
@@ -808,4 +928,10 @@ $.extend(wot, { core: {
 	}
 }});
 
-wot.core.onload();
+if (wot.locale && wot.locale.isready) {
+    wot.core.onload();
+} else {
+    wot.addready("locale", wot.core, wot.core.onload);
+}
+
+

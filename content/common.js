@@ -25,7 +25,7 @@ wot.locale = {
 
 		wot.bind("message:locale:put", function(port, data) {
 			wot.alllocales[data.language] = data.locale || {};
-			wot.language = data.language;
+			wot.lang = data.language;
 			wot.locale.ready(true);
 		});
 

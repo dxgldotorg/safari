@@ -378,7 +378,6 @@ $.extend(wot, { ratingwindow: {
             $("#wot-user-0").css("display", "block");
 	    }
 
-        _this.resize_popover();
         _this.cat_selector.init_voted();
     },
 
@@ -802,6 +801,9 @@ $.extend(wot, { ratingwindow: {
 
         _rw.opened_time = new Date(); // remember time when RW was opened (for UX measurements)
         _rw.prefs = bg.wot.prefs;   // shortcut
+        var rw = wot.ratingwindow;
+        wot.alllocales = bg.wot.alllocales;
+        wot.lang = bg.wot.lang;
         wot.cache_locale();
 
         var first_opening = !_rw.prefs.get(wot.engage_settings.invite_to_rw.pref_name);
@@ -811,7 +813,6 @@ $.extend(wot, { ratingwindow: {
         _rw.is_registered = bg.wot.core.is_level("registered");
 
         _rw.localize();
-		this.resize_popover();
 
 		/* user interface event handlers */
 		var wurls = wot.urls;
@@ -970,43 +971,6 @@ $.extend(wot, { ratingwindow: {
 //        if (bg.wot.core.badge_status && bg.wot.core.badge_status.type == wot.badge_types.notice.type) {
 //            bg.wot.core.set_badge(null, false);   // hide badge
 //        }
-    },
-
-    loadsettings: function(ondone)
-    {
-
-        var prefs = [
-            "accessible"
-        ];
-
-        wot.components.forEach(function(item) {
-            prefs.push("show_application_" + item.name);
-        });
-
-        this.settings = this.settings || {};
-
-        // here we don't need to use messaging. Just let's get data from
-        // background WOT page directly
-        var rw = wot.ratingwindow; // for speedup purpose
-
-        prefs.forEach(function(item){
-            rw.settings[item] = rw.bg_page.wot.prefs.get(item);
-        });
-
-        wot.alllocales = rw.bg_page.wot.alllocales;
-        wot.language = rw.bg_page.wot.language;
-
-        ondone();
-
-    },
-
-    update_settings: function()
-    {
-        // helper to call from background page to update settings
-        var rw = wot.ratingwindow;
-        rw.loadsettings(function() {
-            rw.resize_popover();
-        });
     },
 
     track_pageview: function () {
@@ -1986,7 +1950,5 @@ $.extend(wot, { ratingwindow: {
 
 $(document).ready(function() {
 	wot.place = 'popover';
-	wot.ratingwindow.loadsettings(function() {
-		wot.ratingwindow.onload();
-	});
+    wot.ratingwindow.onload();
 });

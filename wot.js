@@ -411,7 +411,7 @@ var wot = {
 
 	i18n: function(category, id, shorter, language)
 	{
-		language = language || this.language;
+		language = language || wot.lang;
 
 		var locale = this.alllocales[language] || {};
 
