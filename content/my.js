@@ -1,6 +1,6 @@
 /*
 	content/my.js
-	Copyright © 2009, 2011  WOT Services Oy <info@mywot.com>
+	Copyright © 2009 - 2013  WOT Services Oy <info@mywot.com>
 
 	This file is part of WOT.
 
@@ -19,7 +19,7 @@
 */
 
 wot.my = {
-	website: /^http(s)?\:\/\/(www\.)?mywot\.com\//,
+	website: /^http(s)?\:\/\/(.+\.)?mywot\.com\//,
 
 	oncontentloaded: function()
 	{
@@ -35,7 +35,7 @@ wot.my = {
 				});
 			}
 		} catch (e) {
-			wot.log("my.oncontentloaded: failed with " + e + "\n");
+			wot.log("my.oncontentloaded: failed with " + e);
 		}
 	},
 
@@ -49,10 +49,14 @@ wot.my = {
 			wot.addready("my", this);
 
 			wot.bind("message:my:setcookies", function(port, data) {
-				data.cookies.forEach(function(item) {
-					document.cookie = item;
-					wot.log("my: set cookie: " + item + "\n");
-				});
+                data.cookies.forEach(function(item) {
+                    // remove all extra session cookies for paths. See Chrome issue #80 for details.
+                    document.cookie = item + "; expires=Tue, 18-Oct-2005 06:31:14 GMT";
+
+                    // set a cookie for "/" path only
+                    document.cookie = item + "; path=/";
+                    wot.log("my: set cookie: " + item);
+                });
 
 				wot.my.ready(true);
 			});
@@ -67,7 +71,7 @@ wot.my = {
 				wot.my.oncontentloaded();
 			}
 		} catch (e) {
-			wot.log("my.onload: failed with " + e + "\n");
+			wot.log("my.onload: failed with " + e);
 		}
 	}
 };
