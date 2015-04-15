@@ -5,7 +5,7 @@
 	<key>Author</key>
 	<string>WOT Services Oy</string>
 	<key>Builder Version</key>
-	<string>8536.30.1</string>
+	<string>9537.85.14.17</string>
 	<key>CFBundleDisplayName</key>
 	<string>WOT</string>
 	<key>CFBundleIdentifier</key>
@@ -66,6 +66,8 @@
 	</dict>
 	<key>Description</key>
 	<string>Web of Trust shows you which websites people trust for safe surfing, shopping and searching.</string>
+	<key>DeveloperIdentifier</key>
+	<string>FF6WW26HL3</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
